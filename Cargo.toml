@@ -1,0 +1,25 @@
+[package]
+name = "dnspod-lib"
+version = "0.1.0"
+edition = "2021"
+authors = ["hangj <guijie.han@gmail.com>"]
+readme = "README.md"
+description = "DNSPod lib"
+license = "MIT"
+repository = "https://github.com/hangj/dnspod-lib"
+documentation = "https://docs.rs/dnspod-lib/"
+exclude = ["/.github/*", "/.gitattributes", "/appveyor.yml", "/Changelog.md", "/clippy.toml", "/codecov.yml"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = [
+    "dnspod-cli",
+]
+
+[dependencies]
+chrono = "0.4.28"
+hmac-sha256 = "1.1.7"
+literal-enum = "0.1.2"
+serde = { version = "1.0.188", features = ["serde_derive"] }
+serde_json = "1.0.105"
