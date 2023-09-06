@@ -1,7 +1,11 @@
 # DNSPod 
 
+该库使用 [腾讯云 DNSPod API 3.0](https://docs.dnspod.cn/api/api3/) 版本, 不兼容旧版 API  
+
 [DNSPod 简介](https://cloud.tencent.com/document/api/1427/56193)  
 
+
+如果你在找 dnspod 的命令行工具, 请到 [dnspod-cli](https://crates.io/crates/dnspod-cli)
 
 # Examples
 
@@ -13,7 +17,33 @@ extern crate dnspod_lib;
 use anyhow::Result;
 use dnspod_lib::prelude::*;
 
-fn execute(request: impl ExtractHeaders) -> Result<Response> {
+fn main() -> Result<()> {
+    let res = execute(
+        DescribeDomainList {
+            Type: DomainType::ALL,
+            Offset: 0,
+            Limit: 0,
+            GroupId: 0,
+            Keyword: None,
+        }
+        .into()
+    )?;
+    println!("res: {:#?}", res);
+
+    let res = execute(
+        DescribeRecordList {
+            Domain: "youran.de".into(),
+            Subdomain: None,
+            Keyword: None,
+        }
+        .into(),
+    )?;
+    println!("res: {:#?}", res);
+
+    Ok(())
+}
+
+fn execute(request: Action) -> Result<Response> {
     let client = reqwest::blocking::Client::new();
 
     let secret_id = std::env::var("DNSPOD_SECRET_ID")?;
@@ -36,18 +66,9 @@ fn execute(request: impl ExtractHeaders) -> Result<Response> {
 
     Ok(res)
 }
-
-fn main() -> Result<()> {
-    let res = execute(DescribeDomainList::default())?;
-    println!("res: {:#?}", res);
-
-    let res = execute(DescribeRecordList::new("example.com", None, None))?;
-    println!("res: {:#?}", res);
-
-    Ok(())
-}
 ```
 
+## Run
 
 ```console
  DNSPOD_SECRET_ID=your-secret-id DNSPOD_SECRET_KEY=your-secret-key cargo run

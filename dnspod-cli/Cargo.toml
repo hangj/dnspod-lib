@@ -2,8 +2,19 @@
 name = "dnspod-cli"
 version = "0.1.0"
 edition = "2021"
+authors = ["hangj <guijie.han@gmail.com>"]
+readme = "README.md"
+description = "dnspod-cli"
+keywords = ["dnspod", "ddns", "dnspod-cli"]
+license = "MIT"
+repository = "https://github.com/hangj/dnspod-lib"
+documentation = "https://docs.rs/dnspod-cli/"
+exclude = ["/.github/*", "/.gitattributes", "/appveyor.yml", "/Changelog.md", "/clippy.toml", "/codecov.yml"]
 
 [dependencies]
-dnspod-lib ={ path = ".." }
+dnspod-lib = { path = "..", features = ["clap"]}
 anyhow = "1.0.75"
 reqwest = { version = "0.11.20", features = ["json", "blocking"] }
+clap = { version = "4.4.2", features = ["derive", "string", "env"] }
+rand = "0.8.5"
+serde_json = "1.0.105"

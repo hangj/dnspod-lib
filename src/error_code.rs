@@ -3,8 +3,9 @@
 //!
 
 use serde::Deserialize;
+use serde::Serialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorCode {
     #[serde(rename = "Code")]
     code: String,

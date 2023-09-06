@@ -9,9 +9,9 @@
 //! SignedHeaders + '\n' +
 //! HashedRequestPayload
 //!
-//! HTTPRequestMethod	    HTTP 请求方法（GET、POST ）。此示例取值为 POST。
-//! CanonicalURI	        URI 参数，API 3.0 固定为正斜杠（/）。
-//! CanonicalQueryString	发起 HTTP 请求 URL 中的查询字符串，对于 POST 请求，固定为空字符串""，对于 GET 请求，则为 URL 中问号（?）后面的字符串内容，例如：Limit=10&Offset=0。
+//! HTTPRequestMethod        HTTP 请求方法（GET、POST ）。此示例取值为 POST。
+//! CanonicalURI            URI 参数，API 3.0 固定为正斜杠（/）。
+//! CanonicalQueryString    发起 HTTP 请求 URL 中的查询字符串，对于 POST 请求，固定为空字符串""，对于 GET 请求，则为 URL 中问号（?）后面的字符串内容，例如：Limit=10&Offset=0。
 //!                         注意：CanonicalQueryString 需要参考 RFC3986 进行 URLEncode，字符集 UTF-8，推荐使用编程语言标准库，所有特殊字符均需编码，大写形式。
 //!
 //! ```txt
@@ -40,7 +40,7 @@ use crate::{data_types::ContentType, header_params::HeaderParams, utils::encode_
 ///     SignedHeaders + '\n' +
 ///     HashedRequestPayload
 fn canonical_request(body: &[u8], common_params: &HeaderParams, signed_headers: &str) -> String {
-    let action: &'static str = common_params.action.clone().into();
+    let action: &'static str = common_params.action;
     let action = action.to_ascii_lowercase();
     let host = DNSPOD_DOMAIN_NAME;
 
@@ -161,11 +161,11 @@ fn calc_signature(
 ///     'Signature=' + Signature
 /// ```
 ///
-/// Algorithm	签名方法，固定为 TC3-HMAC-SHA256。
-/// SecretId	密钥对中的 SecretId，即 AKIDz8krbsJ5yKBZQpn74WFkmLPx3*******。
-/// CredentialScope	见上文，凭证范围。此示例计算结果是 2019-02-25/cvm/tc3_request。
-/// SignedHeaders	见上文，参与签名的头部信息。此示例取值为 content-type;host;x-tc-action。
-/// Signature	签名值。此示例计算结果是 be4f67d323c78ab9acb7395e43c0dbcf822a9cfac32fea2449a7bc7726b770a3。
+/// Algorithm    签名方法，固定为 TC3-HMAC-SHA256。
+/// SecretId    密钥对中的 SecretId，即 AKIDz8krbsJ5yKBZQpn74WFkmLPx3*******。
+/// CredentialScope    见上文，凭证范围。此示例计算结果是 2019-02-25/cvm/tc3_request。
+/// SignedHeaders    见上文，参与签名的头部信息。此示例取值为 content-type;host;x-tc-action。
+/// Signature    签名值。此示例计算结果是 be4f67d323c78ab9acb7395e43c0dbcf822a9cfac32fea2449a7bc7726b770a3。
 pub fn calculate_authorization(
     body: &[u8],
     common_params: &HeaderParams,
