@@ -34,40 +34,78 @@
 
 #![allow(non_snake_case)]
 
-use serde::Deserialize;
-use serde::Serialize;
-
 use crate::consts;
 use crate::data_types::*;
 use crate::utils::none_to_empty_string;
+use crate::ExtractCommonParams;
 
-macro_rules! expand_param_meta {
-    (url, $expr: expr) => {
-        fn def_url(&self) -> &'static str { $expr }
-    };
-    (version, $expr: expr) => {
-        fn def_version(&self) -> Version { $expr }
-    };
-    (region, $expr: expr) => {
-        fn def_region(&self) -> Option<Region> { Some($expr) }
-    };
-    ($($tt: tt)*) => {
-        compile_error!("This macro only accepts `url` `region` `version`");
-    };
+pub trait DefaultMetaParams {
+    #[inline] fn get_url(&self) -> &'static str { consts::DNSPOD_URL }
+    #[inline] fn get_region(&self) -> Option<Region> { None }
+    #[inline] fn get_version(&self) -> Version { Default::default() }
 }
 
-trait DefaultMetaParams {
-    #[inline] fn def_url(&self) -> &'static str { consts::DNSPOD_URL }
-    #[inline] fn get_url(&self) -> &'static str { self.def_url() }
 
-    #[inline] fn def_region(&self) -> Option<Region> { None }
-    #[inline] fn get_region(&self) -> Option<Region> { self.def_region() }
+// macro_rules! expand_param_meta {
+//     (url, $expr: expr) => {
+//         #[inline] fn get_url(&self) -> &'static str { $expr }
+//     };
+//     (version, $expr: expr) => {
+//         #[inline] fn get_version(&self) -> Version { $expr }
+//     };
+//     (region, $expr: expr) => {
+//         #[inline] fn get_region(&self) -> Option<Region> { Some($expr) }
+//     };
+//     ($($tt: tt)*) => {
+//         compile_error!("This macro only accepts `url` `region` `version`");
+//     };
+// }
 
-    #[inline] fn def_version(&self) -> Version { Default::default() }
-    #[inline] fn get_version(&self) -> Version { self.def_version() }
-}
 
-macro_rules! action_list {
+#[macro_export]
+macro_rules! define_action_list {
+    () => {};
+    (
+        $(
+            $(#[$meta: meta])*
+            $(@[$param_meta: ident = $param_expr: expr])*
+            $vis: vis struct $name: ident {
+                $(
+                    $(#[$field_meta: meta])*
+                    $field_vis: vis $field_name: ident : $field_ty: ty
+                ),*
+
+                $(,)?
+            }
+        )*
+    ) => {
+        $(
+            $(#[$meta])*
+            #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+            #[cfg_attr(feature = "clap", derive(clap::Parser))]
+            pub struct $name {
+                $(
+                    $(#[$field_meta])*
+                    $field_vis $field_name: $field_ty
+                ),*
+            }
+
+            impl DefaultMetaParams for $name {
+                $(
+                    define_action_list!($param_meta, $param_expr);
+                )*
+            }
+
+            impl ExtractCommonParams for $name {
+                #[inline] fn action(&self) -> &'static str { stringify!($name) }
+                #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
+                #[inline] fn url(&self) -> &'static str { self.get_url() }
+                #[inline] fn version(&self) -> dnspod_lib::data_types::Version { self.get_version() }
+                #[inline] fn region(&self) -> Option<dnspod_lib::data_types::Region> { self.get_region() }
+            }
+        )*
+    };
+
     (
         $action_enum: ident,
         $(
@@ -85,9 +123,9 @@ macro_rules! action_list {
     ) => {
         $(
             $(#[$meta])*
-            #[derive(Debug, Clone, Serialize, Deserialize)]
+            #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
             #[cfg_attr(feature = "clap", derive(clap::Parser))]
-            $vis struct $name {
+            pub struct $name {
                 $(
                     $(#[$field_meta])*
                     $field_vis $field_name: $field_ty
@@ -96,15 +134,17 @@ macro_rules! action_list {
 
             impl DefaultMetaParams for $name {
                 $(
-                    expand_param_meta!($param_meta, $param_expr);
+                    define_action_list!($param_meta, $param_expr);
                 )*
             }
 
-            impl From<$name> for $action_enum {
-                fn from(v: $name) -> Self {
-                    Self::$name(v)
+            // $(
+                impl From<$name> for $action_enum {
+                    fn from(v: $name) -> Self {
+                        Self::$name(v)
+                    }
                 }
-            }
+            // )?
 
             impl ExtractCommonParams for $name {
                 #[inline] fn action(&self) -> &'static str { stringify!($name) }
@@ -115,56 +155,63 @@ macro_rules! action_list {
             }
         )*
 
-        #[derive(Debug, Clone)]
-        #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
-        pub enum $action_enum {
-            $($name($name),)*
-        }
+        // $(
+            #[derive(Debug, Clone)]
+            #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
+            pub enum $action_enum {
+                $($name($name),)*
+            }
 
-        pub trait ExtractCommonParams {
-            fn action(&self) -> &'static str;
-            fn body(&self) -> Vec<u8>;
-            fn url(&self) -> &'static str;
-            fn version(&self) -> Version;
-            fn region(&self) -> Option<Region>;
-        }
+            impl ExtractCommonParams for $action_enum {
+                #[inline]
+                fn action(&self) -> &'static str {
+                    match self {
+                        $(Self::$name(v) => v.action(),)*
+                    }
+                }
+                #[inline]
+                fn body(&self) -> Vec<u8> {
+                    match self {
+                        $(Self::$name(v) => v.body(), )*
+                    }
+                }
+                #[inline]
+                fn url(&self) -> &'static str {
+                    match self {
+                        $(Self::$name(v) => v.url(), )*
+                    }
+                }
+                #[inline]
+                fn version(&self) -> Version {
+                    match self {
+                        $(Self::$name(v) => v.version(), )*
+                    }
+                }
+                #[inline]
+                fn region(&self) -> Option<Region> {
+                    match self {
+                        $(Self::$name(v) => v.region(), )*
+                    }
+                }
+            }
+        // )?
+    };
 
-        impl ExtractCommonParams for $action_enum {
-            #[inline]
-            fn action(&self) -> &'static str {
-                match self {
-                    $(Self::$name(v) => v.action(),)*
-                }
-            }
-            #[inline]
-            fn body(&self) -> Vec<u8> {
-                match self {
-                    $(Self::$name(v) => v.body(), )*
-                }
-            }
-            #[inline]
-            fn url(&self) -> &'static str {
-                match self {
-                    $(Self::$name(v) => v.url(), )*
-                }
-            }
-            #[inline]
-            fn version(&self) -> Version {
-                match self {
-                    $(Self::$name(v) => v.version(), )*
-                }
-            }
-            #[inline]
-            fn region(&self) -> Option<Region> {
-                match self {
-                    $(Self::$name(v) => v.region(), )*
-                }
-            }
-        }
+    (url, $expr: expr) => {
+        #[inline] fn get_url(&self) -> &'static str { $expr }
+    };
+    (version, $expr: expr) => {
+        #[inline] fn get_version(&self) -> Version { $expr }
+    };
+    (region, $expr: expr) => {
+        #[inline] fn get_region(&self) -> Option<Region> { Some($expr) }
+    };
+    ($($tt: tt)*) => {
+        compile_error!("This macro only accepts `url` `region` `version`");
     };
 }
 
-action_list! {
+define_action_list! {
     Action,
 
     /// 获取域名列表

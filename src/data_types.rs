@@ -12,14 +12,14 @@ use literal_enum::LiteralEnum;
 use serde::Deserialize;
 use serde::Serialize;
 
-pub(crate) type String = std::string::String;
-pub(crate) type Date = std::string::String; // DnsPodDate
-pub(crate) type Timestamp = std::string::String; // DnsPodTimestamp
-pub(crate) type Integer = u64;
-pub(crate) type Boolean = bool;
-pub(crate) type Float = f32;
-pub(crate) type Double = f32;
-pub(crate) type Binary = Vec<u8>;
+pub type String = std::string::String;
+pub type Date = std::string::String; // DnsPodDate
+pub type Timestamp = std::string::String; // DnsPodTimestamp
+pub type Integer = u64;
+pub type Boolean = bool;
+pub type Float = f32;
+pub type Double = f32;
+pub type Binary = Vec<u8>;
 
 #[derive(Debug, Clone, LiteralEnum, Serialize, Deserialize)]
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]

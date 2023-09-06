@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 
-use action::ExtractCommonParams;
 use chrono::Utc;
 use data_types::*;
 use header_params::HeaderParams;
@@ -19,9 +18,16 @@ mod utils;
 
 pub mod prelude {
     pub use super::action::*;
-    pub use super::data_types::*;
-    pub use super::response::*;
     pub use super::ExtractHeaders;
+    pub use super::ExtractCommonParams;
+}
+
+pub trait ExtractCommonParams {
+    fn action(&self) -> &'static str;
+    fn body(&self) -> Vec<u8>;
+    fn url(&self) -> &'static str;
+    fn version(&self) -> Version;
+    fn region(&self) -> Option<Region>;
 }
 
 pub trait ExtractHeaders: ExtractCommonParams {

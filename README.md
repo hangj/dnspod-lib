@@ -27,7 +27,7 @@ fn main() -> Result<()> {
             Keyword: None,
         }
     )?;
-    println!("res: {:#?}", res);
+    println!("res: {}", res);
 
     let res = execute(
         DescribeRecordList {
@@ -36,12 +36,12 @@ fn main() -> Result<()> {
             Keyword: None,
         }
     )?;
-    println!("res: {:#?}", res);
+    println!("res: {}", res);
 
     Ok(())
 }
 
-fn execute(request: impl ExtractCommonParams) -> Result<Response> {
+fn execute(request: impl ExtractCommonParams) -> Result<serde_json::Value> {
     let client = reqwest::blocking::Client::new();
 
     let secret_id = std::env::var("DNSPOD_SECRET_ID")?;
@@ -58,7 +58,8 @@ fn execute(request: impl ExtractCommonParams) -> Result<Response> {
         .body(body)
         .build()?;
 
-    let res: Response = client
+    // let res: Response = client
+    let res: serde_json::Value = client
         .execute(request)?
         .json()?;
 
@@ -72,4 +73,26 @@ fn execute(request: impl ExtractCommonParams) -> Result<Response> {
  DNSPOD_SECRET_ID=your-secret-id DNSPOD_SECRET_KEY=your-secret-key cargo run
 ```
 
+# 自定义一个请求
+
+```rust
+extern crate serde;
+extern crate dnspod_lib;
+
+use dnspod_lib::prelude::*;
+use dnspod_lib::define_action_list;
+
+// 自定义一个代码中没有实现的请求
+define_action_list! {
+    /// 获取域名信息
+    /// https://cloud.tencent.com/document/api/1427/56173
+    @[url = consts::DNSPOD_URL] // 可以重载 url, version, region
+    pub struct DescribeDomain {
+        /// 域名分组类型，默认为ALL
+        pub Domain: String,
+    }
+}
+
+execute(DescribeDomain { Domain: "example.com".into() })?;
+```
 

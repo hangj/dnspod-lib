@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn execute(request: impl ExtractCommonParams, secret_id: &str, secret_key: &str) -> Result<Response> {
+fn execute(request: impl ExtractCommonParams, secret_id: &str, secret_key: &str) -> Result<serde_json::Value> {
     let client = reqwest::blocking::Client::new();
 
     let url = request.url();
@@ -30,7 +30,7 @@ fn execute(request: impl ExtractCommonParams, secret_id: &str, secret_key: &str)
 
     let request = client.post(url).headers(headers).body(body).build()?;
 
-    let res: Response = client.execute(request)?.json()?;
+    let res: serde_json::Value = client.execute(request)?.json()?;
 
     Ok(res)
 }
