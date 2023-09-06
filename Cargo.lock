@@ -238,12 +238,13 @@ dependencies = [
  "dnspod-lib",
  "rand",
  "reqwest",
+ "serde",
  "serde_json",
 ]
 
 [[package]]
 name = "dnspod-lib"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "chrono",
  "clap",

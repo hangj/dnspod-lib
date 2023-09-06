@@ -77,6 +77,7 @@ fn execute(request: impl ExtractCommonParams) -> Result<serde_json::Value> {
 
 ```rust
 extern crate serde;
+extern crate serde_json;
 extern crate dnspod_lib;
 
 use dnspod_lib::prelude::*;
