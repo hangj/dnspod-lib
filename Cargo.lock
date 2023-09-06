@@ -235,7 +235,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "dnspod-lib",
+ "dnspod-lib 0.1.1",
  "rand",
  "reqwest",
  "serde_json",
@@ -244,6 +244,20 @@ dependencies = [
 [[package]]
 name = "dnspod-lib"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23d8fd9edac1783503d78c91be345ac6fcd911203c1eb9047846008ff40a135f"
+dependencies = [
+ "chrono",
+ "clap",
+ "hmac-sha256",
+ "literal-enum",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "dnspod-lib"
+version = "0.1.2"
 dependencies = [
  "chrono",
  "clap",

@@ -172,46 +172,6 @@ impl<'de> Deserialize<'de> for DnsPodDate {
     }
 }
 
-/// 注意: 服务器有时会返回 "0000-00-00 00:00:00", 会导致 DateTime 解析出错
-/// 所以直接用 String 会有更好的兼容性
-#[derive(Debug, Clone)]
-pub struct DnsPodTimestamp {
-    pub datetime: Option<DateTime<Utc>>,
-}
-
-impl DnsPodTimestamp {
-    const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
-}
-
-impl Serialize for DnsPodTimestamp {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        if let Some(ref datetime) = self.datetime {
-            let s = format!("{}", datetime.format(Self::FORMAT));
-            serializer.serialize_str(&s)
-        } else {
-            serializer.serialize_str("0000-00-00 00:00:00")
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for DnsPodTimestamp {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        match Utc.datetime_from_str(&s, Self::FORMAT) {
-            Ok(datetime) => Ok(Self {
-                datetime: Some(datetime),
-            }),
-            Err(_) => Ok(Self { datetime: None }),
-        }
-    }
-}
-
 #[test]
 fn test() {
     let s = "\"0000-01-01 00:00:00\"";
