@@ -58,13 +58,13 @@ macro_rules! expand_param_meta {
 
 trait DefaultMetaParams {
     #[inline] fn def_url(&self) -> &'static str { consts::DNSPOD_URL }
-    #[inline] fn url(&self) -> &'static str { self.def_url() }
+    #[inline] fn get_url(&self) -> &'static str { self.def_url() }
 
     #[inline] fn def_region(&self) -> Option<Region> { None }
-    #[inline] fn region(&self) -> Option<Region> { self.def_region() }
+    #[inline] fn get_region(&self) -> Option<Region> { self.def_region() }
 
     #[inline] fn def_version(&self) -> Version { Default::default() }
-    #[inline] fn version(&self) -> Version { self.def_version() }
+    #[inline] fn get_version(&self) -> Version { self.def_version() }
 }
 
 macro_rules! action_list {
@@ -105,6 +105,14 @@ macro_rules! action_list {
                     Self::$name(v)
                 }
             }
+
+            impl ExtractCommonParams for $name {
+                #[inline] fn action(&self) -> &'static str { stringify!($name) }
+                #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
+                #[inline] fn url(&self) -> &'static str { self.get_url() }
+                #[inline] fn version(&self) -> Version { self.get_version() }
+                #[inline] fn region(&self) -> Option<Region> { self.get_region() }
+            }
         )*
 
         #[derive(Debug, Clone)]
@@ -122,26 +130,31 @@ macro_rules! action_list {
         }
 
         impl ExtractCommonParams for $action_enum {
+            #[inline]
             fn action(&self) -> &'static str {
                 match self {
-                    $(Self::$name(_) => stringify!($name),)*
+                    $(Self::$name(v) => v.action(),)*
                 }
             }
+            #[inline]
             fn body(&self) -> Vec<u8> {
                 match self {
-                    $(Self::$name(v) => serde_json::to_vec(v).unwrap(), )*
+                    $(Self::$name(v) => v.body(), )*
                 }
             }
+            #[inline]
             fn url(&self) -> &'static str {
                 match self {
                     $(Self::$name(v) => v.url(), )*
                 }
             }
+            #[inline]
             fn version(&self) -> Version {
                 match self {
                     $(Self::$name(v) => v.version(), )*
                 }
             }
+            #[inline]
             fn region(&self) -> Option<Region> {
                 match self {
                     $(Self::$name(v) => v.region(), )*

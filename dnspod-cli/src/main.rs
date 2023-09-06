@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn execute(request: Action, secret_id: &str, secret_key: &str) -> Result<Response> {
+fn execute(request: impl ExtractCommonParams, secret_id: &str, secret_key: &str) -> Result<Response> {
     let client = reqwest::blocking::Client::new();
 
     let url = request.url();

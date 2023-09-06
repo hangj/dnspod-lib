@@ -26,7 +26,6 @@ fn main() -> Result<()> {
             GroupId: 0,
             Keyword: None,
         }
-        .into()
     )?;
     println!("res: {:#?}", res);
 
@@ -36,14 +35,13 @@ fn main() -> Result<()> {
             Subdomain: None,
             Keyword: None,
         }
-        .into(),
     )?;
     println!("res: {:#?}", res);
 
     Ok(())
 }
 
-fn execute(request: Action) -> Result<Response> {
+fn execute(request: impl ExtractCommonParams) -> Result<Response> {
     let client = reqwest::blocking::Client::new();
 
     let secret_id = std::env::var("DNSPOD_SECRET_ID")?;
