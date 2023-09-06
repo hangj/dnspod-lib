@@ -65,34 +65,23 @@ pub trait DefaultMetaParams {
 #[macro_export]
 macro_rules! define_action_list {
     () => {};
+
+    // 手动实现 Action 且不需要有 enum 的情况, 面向外部的接口
     (
         $(
             $(#[$meta: meta])*
             $(@[$param_meta: ident = $param_expr: expr])*
-            $vis: vis struct $name: ident {
-                $(
-                    $(#[$field_meta: meta])*
-                    $field_vis: vis $field_name: ident : $field_ty: ty
-                ),*
-
-                $(,)?
-            }
+            $vis: vis struct $name: ident $tt: tt
         )*
     ) => {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-            #[cfg_attr(feature = "clap", derive(clap::Parser))]
-            pub struct $name {
-                $(
-                    $(#[$field_meta])*
-                    $field_vis $field_name: $field_ty
-                ),*
-            }
+            pub struct $name $tt
 
             impl DefaultMetaParams for $name {
                 $(
-                    define_action_list!($param_meta, $param_expr);
+                    define_action_list!(dnspod_lib, $param_meta, $param_expr);
                 )*
             }
 
@@ -106,105 +95,134 @@ macro_rules! define_action_list {
         )*
     };
 
+    // 手动实现 Action 带有 enum 的情况, 面向外部的接口
     (
         $action_enum: ident,
         $(
             $(#[$meta: meta])*
             $(@[$param_meta: ident = $param_expr: expr])*
-            $vis: vis struct $name: ident {
-                $(
-                    $(#[$field_meta: meta])*
-                    $field_vis: vis $field_name: ident : $field_ty: ty
-                ),*
+            $vis: vis struct $name: ident $tt: tt
+        )*
+    ) => {
+        define_action_list!(
+            dnspod_lib,
+            enum $action_enum {},
+            $(
+                $(#[$meta])*
+                $(@[$param_meta = $param_expr])*
+                $vis struct $name $tt
+            )*
+        );
+    };
 
-                $(,)?
-            }
+    // 真正干活的接口
+    (
+        $crat: ident,
+        $(#[$enum_meta: meta])*
+        enum $action_enum: ident {},
+        $(
+            $(#[$meta: meta])*
+            $(@[$param_meta: ident = $param_expr: expr])*
+            $vis: vis struct $name: ident $tt: tt
         )*
     ) => {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-            #[cfg_attr(feature = "clap", derive(clap::Parser))]
-            pub struct $name {
-                $(
-                    $(#[$field_meta])*
-                    $field_vis $field_name: $field_ty
-                ),*
-            }
+            pub struct $name $tt
 
             impl DefaultMetaParams for $name {
                 $(
-                    define_action_list!($param_meta, $param_expr);
+                    define_action_list!($crat, $param_meta, $param_expr);
                 )*
             }
 
-            // $(
-                impl From<$name> for $action_enum {
-                    fn from(v: $name) -> Self {
-                        Self::$name(v)
-                    }
+            impl From<$name> for $action_enum {
+                fn from(v: $name) -> Self {
+                    Self::$name(v)
                 }
-            // )?
+            }
 
             impl ExtractCommonParams for $name {
                 #[inline] fn action(&self) -> &'static str { stringify!($name) }
                 #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
                 #[inline] fn url(&self) -> &'static str { self.get_url() }
-                #[inline] fn version(&self) -> Version { self.get_version() }
-                #[inline] fn region(&self) -> Option<Region> { self.get_region() }
+                #[inline] fn version(&self) -> $crat::data_types::Version { self.get_version() }
+                #[inline] fn region(&self) -> Option<$crat::data_types::Region> { self.get_region() }
             }
         )*
 
-        // $(
-            #[derive(Debug, Clone)]
-            #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
-            pub enum $action_enum {
-                $($name($name),)*
-            }
+        #[derive(Debug, Clone)]
+        $(#[$enum_meta])*
+        pub enum $action_enum {
+            $($name($name),)*
+        }
 
-            impl ExtractCommonParams for $action_enum {
-                #[inline]
-                fn action(&self) -> &'static str {
-                    match self {
-                        $(Self::$name(v) => v.action(),)*
-                    }
-                }
-                #[inline]
-                fn body(&self) -> Vec<u8> {
-                    match self {
-                        $(Self::$name(v) => v.body(), )*
-                    }
-                }
-                #[inline]
-                fn url(&self) -> &'static str {
-                    match self {
-                        $(Self::$name(v) => v.url(), )*
-                    }
-                }
-                #[inline]
-                fn version(&self) -> Version {
-                    match self {
-                        $(Self::$name(v) => v.version(), )*
-                    }
-                }
-                #[inline]
-                fn region(&self) -> Option<Region> {
-                    match self {
-                        $(Self::$name(v) => v.region(), )*
-                    }
+        impl ExtractCommonParams for $action_enum {
+            #[inline]
+            fn action(&self) -> &'static str {
+                match self {
+                    $(Self::$name(v) => v.action(),)*
                 }
             }
-        // )?
+            #[inline]
+            fn body(&self) -> Vec<u8> {
+                match self {
+                    $(Self::$name(v) => v.body(), )*
+                }
+            }
+            #[inline]
+            fn url(&self) -> &'static str {
+                match self {
+                    $(Self::$name(v) => v.url(), )*
+                }
+            }
+            #[inline]
+            fn version(&self) -> $crat::data_types::Version {
+                match self {
+                    $(Self::$name(v) => v.version(), )*
+                }
+            }
+            #[inline]
+            fn region(&self) -> Option<$crat::data_types::Region> {
+                match self {
+                    $(Self::$name(v) => v.region(), )*
+                }
+            }
+        }
     };
 
-    (url, $expr: expr) => {
+    // 本 lib 内部使用的接口, 注入一些 meta 数据
+    (
+        crate,
+        $action_enum: ident,
+        $(
+            $(#[$meta: meta])*
+            $(@[$param_meta: ident = $param_expr: expr])*
+            $vis: vis struct $name: ident $tt: tt
+        )*
+    ) => {
+        define_action_list!(
+            crate,
+            #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
+            enum $action_enum {},
+            $(
+                $(#[$meta])*
+                #[cfg_attr(feature = "clap", derive(clap::Parser))]
+                $(@[$param_meta = $param_expr])*
+                $vis struct $name $tt
+            )*
+        );
+    };
+
+    ($crat: ident, url, $expr: expr) => {
         #[inline] fn get_url(&self) -> &'static str { $expr }
     };
-    (version, $expr: expr) => {
-        #[inline] fn get_version(&self) -> Version { $expr }
+    ($crat: ident, version, $expr: expr) => {
+        #[inline] fn get_version(&self) -> $crat::data_types::Version { $expr }
     };
-    (region, $expr: expr) => {
-        #[inline] fn get_region(&self) -> Option<Region> { Some($expr) }
+    ($crat: ident, region, $expr: expr) => {
+        #[inline] fn get_region(&self) -> Option<$crat::data_types::Region> { Some($expr) }
     };
     ($($tt: tt)*) => {
         compile_error!("This macro only accepts `url` `region` `version`");
@@ -212,6 +230,7 @@ macro_rules! define_action_list {
 }
 
 define_action_list! {
+    crate,
     Action,
 
     /// 获取域名列表
