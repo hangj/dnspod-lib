@@ -1,3 +1,37 @@
+//! 定义各个 Action
+//! 
+//! 添加具体 Action 时可以通过 `@[url = consts::DNSPOD_URL]` 覆盖掉默认配置
+//! 
+//! Example:
+//! 
+//! ```rust
+//! /// 获取域名列表
+//! /// https://cloud.tencent.com/document/api/1427/56172
+//! @[url = consts::DNSPOD_URL]
+//! @[version = Version::Version2021_03_23]
+//! pub struct DescribeDomainList {
+//!     /// 域名分组类型，默认为ALL
+//!     #[cfg_attr(feature = "clap", arg(long, value_enum, default_value_t=Default::default()))]
+//!     pub Type: DomainType,
+//!     /// 记录开始的偏移, 第一条记录为 0, 依次类推。默认值为0。
+//!     /// 示例值：0
+//!     #[cfg_attr(feature = "clap", arg(long, default_value_t=0))]
+//!     pub Offset: Integer,
+//!     /// 要获取的域名数量, 比如获取20个, 则为20。默认值为3000。
+//!     /// 示例值：20
+//!     #[cfg_attr(feature = "clap", arg(long, default_value_t=3000))]
+//!     pub Limit: Integer,
+//!     /// 分组ID, 第一个组为 0, 获取指定分组的域名
+//!     /// 示例值：1
+//!     #[cfg_attr(feature = "clap", arg(long, default_value_t=0))]
+//!     pub GroupId: Integer,
+//!     /// 根据关键字搜索域名
+//!     /// 示例值：qq
+//!     #[cfg_attr(feature = "clap", arg(long, default_value=""))]
+//!     pub Keyword: Option<String>,
+//! }
+//! ```
+
 #![allow(non_snake_case)]
 
 use serde::Deserialize;
@@ -7,12 +41,38 @@ use crate::consts;
 use crate::data_types::*;
 use crate::utils::none_to_empty_string;
 
+macro_rules! expand_param_meta {
+    (url, $expr: expr) => {
+        fn def_url(&self) -> &'static str { $expr }
+    };
+    (version, $expr: expr) => {
+        fn def_version(&self) -> Version { $expr }
+    };
+    (region, $expr: expr) => {
+        fn def_region(&self) -> Option<Region> { Some($expr) }
+    };
+    ($($tt: tt)*) => {
+        compile_error!("This macro only accepts `url` `region` `version`");
+    };
+}
+
+trait DefaultMetaParams {
+    #[inline] fn def_url(&self) -> &'static str { consts::DNSPOD_URL }
+    #[inline] fn url(&self) -> &'static str { self.def_url() }
+
+    #[inline] fn def_region(&self) -> Option<Region> { None }
+    #[inline] fn region(&self) -> Option<Region> { self.def_region() }
+
+    #[inline] fn def_version(&self) -> Version { Default::default() }
+    #[inline] fn version(&self) -> Version { self.def_version() }
+}
+
 macro_rules! action_list {
     (
         $action_enum: ident,
         $(
-            $(@[$param_meta: ident = $param_expr: expr])*
             $(#[$meta: meta])*
+            $(@[$param_meta: ident = $param_expr: expr])*
             $vis: vis struct $name: ident {
                 $(
                     $(#[$field_meta: meta])*
@@ -34,39 +94,10 @@ macro_rules! action_list {
                 ),*
             }
 
-            impl $name {
-                pub fn action(&self) -> &'static str {
-                    $(
-                        if stringify!($param_meta) == "action" {
-                            return $param_expr;
-                        }
-                    )*
-                    stringify!($name)
-                }
-                pub fn version(&self) -> Version {
-                    $(
-                        if stringify!($param_meta) == "version" {
-                            return $param_expr;
-                        }
-                    )*
-                    Default::default()
-                }
-                pub fn region(&self) -> Option<Region> {
-                    $(
-                        if stringify!($param_meta) == "region" {
-                            return Some($param_expr);
-                        }
-                    )*
-                    None
-                }
-                pub fn url(&self) -> &'static str {
-                    $(
-                        if stringify!($param_meta) == "url" {
-                            return $param_expr;
-                        }
-                    )*
-                    consts::DNSPOD_URL
-                }
+            impl DefaultMetaParams for $name {
+                $(
+                    expand_param_meta!($param_meta, $param_expr);
+                )*
             }
 
             impl From<$name> for $action_enum {
@@ -93,7 +124,7 @@ macro_rules! action_list {
         impl ExtractCommonParams for $action_enum {
             fn action(&self) -> &'static str {
                 match self {
-                    $(Self::$name(v) => v.action(),)*
+                    $(Self::$name(_) => stringify!($name),)*
                 }
             }
             fn body(&self) -> Vec<u8> {
@@ -122,8 +153,11 @@ macro_rules! action_list {
 
 action_list! {
     Action,
+
     /// 获取域名列表
     /// https://cloud.tencent.com/document/api/1427/56172
+    @[url = consts::DNSPOD_URL]
+    @[version = Version::Version2021_03_23]
     pub struct DescribeDomainList {
         /// 域名分组类型，默认为ALL
         #[cfg_attr(feature = "clap", arg(long, value_enum, default_value_t=Default::default()))]

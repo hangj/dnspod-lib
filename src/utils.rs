@@ -1,16 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::Serializer;
 
-pub(crate) trait ToString {
-    fn to_string(self) -> String;
-}
-
-impl<T: Into<&'static str>> ToString for T {
-    fn to_string(self) -> String {
-        let s: &'static str = self.into();
-        s.into()
-    }
-}
 
 /// Convert [u8] to Hex string
 ///
