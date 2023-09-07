@@ -174,6 +174,9 @@ impl<'de> Deserialize<'de> for DnsPodDate {
 
 #[test]
 fn test() {
+    let s = "\"0000-00-00 00:00:00\"";
+    assert!(serde_json::from_str::<'_, Timestamp>(s).is_err());
+
     let s = "\"0000-01-01 00:00:00\"";
     let t: Timestamp = serde_json::from_str(s).unwrap();
     let s = serde_json::to_string_pretty(&t).unwrap();

@@ -17,10 +17,10 @@ pub mod signature;
 mod utils;
 
 // re-export serde and serde_json
-#[allow(unused_imports)]
-#[macro_use]
-pub extern crate serde;
-pub extern crate serde_json;
+// #[allow(unused_imports)]
+// #[macro_use]
+pub use serde;
+pub use serde_json;
 
 pub mod prelude {
     pub use super::action::*;

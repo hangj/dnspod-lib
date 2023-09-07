@@ -6,30 +6,8 @@ use args::Args;
 use anyhow::Result;
 
 use dnspod_lib::prelude::*;
-use dnspod_lib::consts;
-use dnspod_lib::define_action_list;
-use dnspod_lib::serde;
 use dnspod_lib::serde_json;
 
-// 自定义一个代码中没有实现的请求
-define_action_list! {
-    /// 获取域名信息
-    /// https://cloud.tencent.com/document/api/1427/56173
-    #[allow(non_snake_case)]
-    @[url = consts::DNSPOD_URL] // 可以重载 url, version, region
-    pub struct DescribeDomain {
-        /// 域名分组类型，默认为ALL
-        pub Domain: String,
-    }
-}
-define_action_list! {
-    TestAction,
-    #[allow(non_snake_case)]
-    pub struct TestFoo {
-        /// 域名分组类型，默认为ALL
-        pub Domain: String,
-    }
-}
 
 fn main() -> Result<()> {
     let Args {

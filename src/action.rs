@@ -1,6 +1,6 @@
 //! 定义各个 Action
 //! 
-//! 添加具体 Action 时可以通过 `@[url = consts::DNSPOD_URL]` 覆盖掉默认配置
+//! 添加具体 Action 时可以通过 `@[url = consts::DNSPOD_URL]` 覆盖掉默认公共参数。可以覆盖的还有 region 和 version
 //! 
 //! Example:
 //! 

@@ -15,7 +15,10 @@ extern crate reqwest;
 extern crate dnspod_lib;
 
 use anyhow::Result;
+
+use dnspod_lib::serde_json;
 use dnspod_lib::prelude::*;
+use dnspod_lib::data_types::DomainType;
 
 fn main() -> Result<()> {
     let res = execute(
@@ -76,18 +79,18 @@ fn execute(request: impl ExtractCommonParams) -> Result<serde_json::Value> {
 # 自定义一个请求
 
 ```rust
-extern crate serde;
-extern crate serde_json;
 extern crate dnspod_lib;
 
 use dnspod_lib::prelude::*;
 use dnspod_lib::define_action_list;
+use dnspod_lib::serde;
+use dnspod_lib::serde_json;
 
 // 自定义一个代码中没有实现的请求
 define_action_list! {
     /// 获取域名信息
     /// https://cloud.tencent.com/document/api/1427/56173
-    @[url = consts::DNSPOD_URL] // 可以重载 url, version, region
+    @[url = "https://example.com"] // 可以重载 url, version, region
     pub struct DescribeDomain {
         /// 域名分组类型，默认为ALL
         pub Domain: String,
