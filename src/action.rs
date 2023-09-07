@@ -68,7 +68,7 @@ macro_rules! define_action_list {
 
                 impl DefaultMetaParams for $name {
                     $(
-                        define_action_list!($param_meta, $param_expr);
+                        $crate::define_action_list!($param_meta, $param_expr);
                     )*
                 }
 
@@ -92,7 +92,7 @@ macro_rules! define_action_list {
             $vis: vis struct $name: ident $tt: tt
         )*
     ) => {
-        define_action_list!(
+        $crate::define_action_list!(
             enum $action_enum {},
             $(
                 $(#[$meta])*
@@ -129,7 +129,7 @@ macro_rules! define_action_list {
 
                 impl DefaultMetaParams for $name {
                     $(
-                        define_action_list!($param_meta, $param_expr);
+                        $crate::define_action_list!($param_meta, $param_expr);
                     )*
                 }
 
@@ -203,7 +203,7 @@ macro_rules! define_action_list {
             $vis: vis struct $name: ident $tt: tt
         )*
     ) => {
-        define_action_list!(
+        $crate::define_action_list!(
             #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
             enum $action_enum {},
             $(

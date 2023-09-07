@@ -23,12 +23,12 @@ use crate::error_code::ErrorCode;
 
 /// 返回结果
 /// https://cloud.tencent.com/document/api/1427/56191
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Response {
     pub Response: InnerResponse,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InnerResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub Error: Option<Error>,
@@ -52,21 +52,21 @@ pub struct InnerResponse {
     pub DomainList: Option<Vec<DomainListItem>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Error {
     #[serde(flatten)]
     pub code: ErrorCode,
     pub Message: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecordCountInfo {
     pub SubdomainCount: Integer,
     pub TotalCount: Integer,
     pub ListCount: Integer,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecordListItem {
     /// 记录Id
     /// 示例值：1
@@ -114,7 +114,7 @@ pub struct RecordListItem {
     pub DefaultNS: Option<Boolean>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecordInfo {
     /// Id    Integer    记录 ID 。
     /// 示例值：158
@@ -179,7 +179,7 @@ pub struct RecordInfo {
     pub DomainId: Integer,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DomainCountInfo {
     /// DomainTotal    Integer    符合条件的域名数量
     /// 示例值：1
@@ -219,7 +219,7 @@ pub struct DomainCountInfo {
     pub GroupTotal: Integer,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DomainListItem {
     /// DomainId    Integer    系统分配给域名的唯一标识
     /// 示例值：12
@@ -292,7 +292,7 @@ pub struct DomainListItem {
     pub TagList: Option<Vec<TagItem>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TagItem {
     /// 标签键
     /// 示例值：key1
