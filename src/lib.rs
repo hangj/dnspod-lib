@@ -24,7 +24,6 @@ pub use serde_json;
 
 pub mod prelude {
     pub use super::action::*;
-    pub use super::ExtractHeaders;
     pub use super::ExtractCommonParams;
 }
 
@@ -34,17 +33,7 @@ pub trait ExtractCommonParams {
     fn url(&self) -> &'static str;
     fn version(&self) -> Version;
     fn region(&self) -> Option<Region>;
-}
 
-pub trait ExtractHeaders: ExtractCommonParams {
-    fn headers(
-        &self,
-        secret_id: &impl AsRef<str>,
-        secret_key: &impl AsRef<str>,
-    ) -> HashMap<String, String>;
-}
-
-impl<T: ExtractCommonParams> ExtractHeaders for T {
     fn headers(
         &self,
         secret_id: &impl AsRef<str>,
@@ -70,4 +59,13 @@ impl<T: ExtractCommonParams> ExtractHeaders for T {
 
         hp.into()
     }
+}
+
+
+/// This is a helper trait for the macros to overloading the default implementation
+#[allow(non_camel_case_types)]
+pub trait DefaultMetaParams {
+    #[inline] fn get_url(&self) -> &'static str { consts::DNSPOD_URL }
+    #[inline] fn get_region(&self) -> Option<Region> { None }
+    #[inline] fn get_version(&self) -> Version { Default::default() }
 }

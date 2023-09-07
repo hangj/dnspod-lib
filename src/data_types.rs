@@ -1,5 +1,6 @@
 //! 参数类型
 //! https://cloud.tencent.com/document/api/1427/78480
+
 #![allow(unused)]
 
 use std::str::FromStr;
@@ -21,18 +22,20 @@ pub type Float = f32;
 pub type Double = f32;
 pub type Binary = Vec<u8>;
 
-#[derive(Debug, Clone, LiteralEnum, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, LiteralEnum, Serialize, Deserialize)]
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum ContentType {
+    #[default]
     #[lit = "application/json; charset=utf-8"]
     #[serde(rename = "application/json; charset=utf-8")]
     #[cfg_attr(feature = "clap", clap(name = "application/json; charset=utf-8"))]
     JSON,
 }
 
-#[derive(Debug, Clone, LiteralEnum, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, LiteralEnum, Serialize, Deserialize)]
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum Language {
+    #[default]
     #[lit = "en-US"]
     #[serde(rename = "en-US")]
     #[cfg_attr(feature = "clap", clap(name = "en-US"))]

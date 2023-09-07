@@ -1,6 +1,6 @@
 [package]
 name = "dnspod-lib"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 authors = ["hangj <guijie.han@gmail.com>"]
 readme = "README.md"

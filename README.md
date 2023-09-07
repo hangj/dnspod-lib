@@ -12,7 +12,6 @@
 ```rust
 extern crate anyhow;
 extern crate reqwest;
-extern crate dnspod_lib;
 
 use anyhow::Result;
 
@@ -79,12 +78,8 @@ fn execute(request: impl ExtractCommonParams) -> Result<serde_json::Value> {
 # 自定义一个请求
 
 ```rust
-extern crate dnspod_lib;
-
 use dnspod_lib::prelude::*;
 use dnspod_lib::define_action_list;
-use dnspod_lib::serde;
-use dnspod_lib::serde_json;
 
 // 自定义一个代码中没有实现的请求
 define_action_list! {

@@ -242,7 +242,7 @@ dependencies = [
 
 [[package]]
 name = "dnspod-lib"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "chrono",
  "clap",

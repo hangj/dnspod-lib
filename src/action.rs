@@ -37,19 +37,13 @@
 
 use crate::utils::none_to_empty_string;
 
-use crate::serde;
 use crate::data_types::*;
 use crate::consts;
 
-
-/// This is a helper trait for the macros to overloading the default implementation
-#[allow(non_camel_case_types)]
-pub trait DefaultMetaParams__dnspod_lib {
-    #[inline] fn get_url(&self) -> &'static str { consts::DNSPOD_URL }
-    #[inline] fn get_region(&self) -> Option<Region> { None }
-    #[inline] fn get_version(&self) -> Version { Default::default() }
+/// for `#[serde(crate = "dnspod_lib::serde")]`
+mod dnspod_lib {
+    pub use crate::serde;
 }
-
 
 #[macro_export]
 macro_rules! define_action_list {
@@ -66,22 +60,26 @@ macro_rules! define_action_list {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
-            #[serde(crate = "self::serde")]
-            pub struct $name $tt
+            #[serde(crate = "dnspod_lib::serde")]
+            $vis struct $name $tt
 
-            impl $crate::action::DefaultMetaParams__dnspod_lib for $name {
-                $(
-                    define_action_list!($param_meta, $param_expr);
-                )*
-            }
+            const _: () = {
+                use $crate::DefaultMetaParams;
 
-            impl $crate::ExtractCommonParams for $name {
-                #[inline] fn action(&self) -> &'static str { stringify!($name) }
-                #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
-                #[inline] fn url(&self) -> &'static str { self.get_url() }
-                #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
-                #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
-            }
+                impl DefaultMetaParams for $name {
+                    $(
+                        define_action_list!($param_meta, $param_expr);
+                    )*
+                }
+
+                impl $crate::ExtractCommonParams for $name {
+                    #[inline] fn action(&self) -> &'static str { stringify!($name) }
+                    #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
+                    #[inline] fn url(&self) -> &'static str { self.get_url() }
+                    #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
+                    #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
+                }
+            };
         )*
     };
 
@@ -117,14 +115,8 @@ macro_rules! define_action_list {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
-            #[serde(crate = "self::serde")]
-            pub struct $name $tt
-
-            impl $crate::action::DefaultMetaParams__dnspod_lib for $name {
-                $(
-                    define_action_list!($param_meta, $param_expr);
-                )*
-            }
+            #[serde(crate = "dnspod_lib::serde")]
+            $vis struct $name $tt
 
             impl From<$name> for $action_enum {
                 fn from(v: $name) -> Self {
@@ -132,13 +124,23 @@ macro_rules! define_action_list {
                 }
             }
 
-            impl $crate::ExtractCommonParams for $name {
-                #[inline] fn action(&self) -> &'static str { stringify!($name) }
-                #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
-                #[inline] fn url(&self) -> &'static str { self.get_url() }
-                #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
-                #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
-            }
+            const _: () = {
+                use $crate::DefaultMetaParams;
+
+                impl DefaultMetaParams for $name {
+                    $(
+                        define_action_list!($param_meta, $param_expr);
+                    )*
+                }
+
+                impl $crate::ExtractCommonParams for $name {
+                    #[inline] fn action(&self) -> &'static str { stringify!($name) }
+                    #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
+                    #[inline] fn url(&self) -> &'static str { self.get_url() }
+                    #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
+                    #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
+                }
+            };
         )*
 
         #[derive(Debug, Clone)]
@@ -150,32 +152,42 @@ macro_rules! define_action_list {
         impl $crate::ExtractCommonParams for $action_enum {
             #[inline]
             fn action(&self) -> &'static str {
+                #[allow(unreachable_patterns)]
                 match self {
                     $(Self::$name(v) => v.action(),)*
+                    _ => Default::default(),
                 }
             }
             #[inline]
             fn body(&self) -> Vec<u8> {
+                #[allow(unreachable_patterns)]
                 match self {
                     $(Self::$name(v) => v.body(), )*
+                    _ => Default::default(),
                 }
             }
             #[inline]
             fn url(&self) -> &'static str {
+                #[allow(unreachable_patterns)]
                 match self {
                     $(Self::$name(v) => v.url(), )*
+                    _ => Default::default(),
                 }
             }
             #[inline]
             fn version(&self) -> $crate::data_types::Version {
+                #[allow(unreachable_patterns)]
                 match self {
                     $(Self::$name(v) => v.version(), )*
+                    _ => Default::default(),
                 }
             }
             #[inline]
             fn region(&self) -> Option<$crate::data_types::Region> {
+                #[allow(unreachable_patterns)]
                 match self {
                     $(Self::$name(v) => v.region(), )*
+                    _ => Default::default(),
                 }
             }
         }
