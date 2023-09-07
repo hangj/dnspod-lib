@@ -1,10 +1,9 @@
 use clap::Parser;
-use dnspod_lib::prelude::*;
+use dnspod_lib::action::Action;
 
 #[derive(Debug, Parser)]
-#[clap(version, about, long_about = None)]
+#[clap(version, about)]
 pub struct Args {
-    // #[subcommand(value_enum, default_value_t=CliAction(Action::DescribeRecordList))]
     #[clap(subcommand)]
     pub action: Action,
     #[arg(long, env = "DNSPOD_SECRET_ID")]

@@ -33,3 +33,7 @@ Options:
   -V, --version                  Print version
 ```
 
+目前只添加了这些 subcommand, 如果你想添加更多, 请看 [dnspod-lib](https://crates.io/crates/dnspod-lib/#%E8%87%AA%E5%AE%9A%E4%B9%89%E4%B8%80%E4%B8%AA%E8%AF%B7%E6%B1%82)   
+
+通过 `define_action_list` 宏可以很方便地添加其它接口请求
+

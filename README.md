@@ -85,7 +85,7 @@ use dnspod_lib::define_action_list;
 define_action_list! {
     /// 获取域名信息
     /// https://cloud.tencent.com/document/api/1427/56173
-    @[url = "https://example.com"] // 可以重载 url, version, region
+    @[url = "https://example.com"] // 公共参数可以重载 url, version, region
     pub struct DescribeDomain {
         /// 域名分组类型，默认为ALL
         pub Domain: String,
