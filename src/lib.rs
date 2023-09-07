@@ -16,6 +16,12 @@ pub mod response;
 pub mod signature;
 mod utils;
 
+// re-export serde and serde_json
+#[allow(unused_imports)]
+#[macro_use]
+pub extern crate serde;
+pub extern crate serde_json;
+
 pub mod prelude {
     pub use super::action::*;
     pub use super::ExtractHeaders;

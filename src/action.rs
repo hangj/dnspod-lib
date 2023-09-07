@@ -36,37 +36,19 @@
 
 
 use crate::utils::none_to_empty_string;
-use crate::ExtractCommonParams;
 
-// todo: re-export serde and serde_json
+use crate::serde;
+use crate::data_types::*;
+use crate::consts;
 
-/// 在 macro 内的类型等统一用以 dnspod_lig:: 开头的完整路径, 以便外部调用时不需主动 use
-mod dnspod_lib {
-    pub use crate::consts;
-    pub use crate::data_types;
+
+/// This is a helper trait for the macros to overloading the default implementation
+#[allow(non_camel_case_types)]
+pub trait DefaultMetaParams__dnspod_lib {
+    #[inline] fn get_url(&self) -> &'static str { consts::DNSPOD_URL }
+    #[inline] fn get_region(&self) -> Option<Region> { None }
+    #[inline] fn get_version(&self) -> Version { Default::default() }
 }
-
-pub trait DefaultMetaParams {
-    #[inline] fn get_url(&self) -> &'static str { dnspod_lib::consts::DNSPOD_URL }
-    #[inline] fn get_region(&self) -> Option<dnspod_lib::data_types::Region> { None }
-    #[inline] fn get_version(&self) -> dnspod_lib::data_types::Version { Default::default() }
-}
-
-
-// macro_rules! expand_param_meta {
-//     (url, $expr: expr) => {
-//         #[inline] fn get_url(&self) -> &'static str { $expr }
-//     };
-//     (version, $expr: expr) => {
-//         #[inline] fn get_version(&self) -> Version { $expr }
-//     };
-//     (region, $expr: expr) => {
-//         #[inline] fn get_region(&self) -> Option<Region> { Some($expr) }
-//     };
-//     ($($tt: tt)*) => {
-//         compile_error!("This macro only accepts `url` `region` `version`");
-//     };
-// }
 
 
 #[macro_export]
@@ -83,21 +65,22 @@ macro_rules! define_action_list {
     ) => {
         $(
             $(#[$meta])*
-            #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+            #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
+            #[serde(crate = "self::serde")]
             pub struct $name $tt
 
-            impl DefaultMetaParams for $name {
+            impl $crate::action::DefaultMetaParams__dnspod_lib for $name {
                 $(
                     define_action_list!($param_meta, $param_expr);
                 )*
             }
 
-            impl ExtractCommonParams for $name {
+            impl $crate::ExtractCommonParams for $name {
                 #[inline] fn action(&self) -> &'static str { stringify!($name) }
-                #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
+                #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
                 #[inline] fn url(&self) -> &'static str { self.get_url() }
-                #[inline] fn version(&self) -> dnspod_lib::data_types::Version { self.get_version() }
-                #[inline] fn region(&self) -> Option<dnspod_lib::data_types::Region> { self.get_region() }
+                #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
+                #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
             }
         )*
     };
@@ -112,7 +95,6 @@ macro_rules! define_action_list {
         )*
     ) => {
         define_action_list!(
-            // dnspod_lib,
             enum $action_enum {},
             $(
                 $(#[$meta])*
@@ -134,10 +116,11 @@ macro_rules! define_action_list {
     ) => {
         $(
             $(#[$meta])*
-            #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+            #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
+            #[serde(crate = "self::serde")]
             pub struct $name $tt
 
-            impl DefaultMetaParams for $name {
+            impl $crate::action::DefaultMetaParams__dnspod_lib for $name {
                 $(
                     define_action_list!($param_meta, $param_expr);
                 )*
@@ -149,12 +132,12 @@ macro_rules! define_action_list {
                 }
             }
 
-            impl ExtractCommonParams for $name {
+            impl $crate::ExtractCommonParams for $name {
                 #[inline] fn action(&self) -> &'static str { stringify!($name) }
-                #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
+                #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
                 #[inline] fn url(&self) -> &'static str { self.get_url() }
-                #[inline] fn version(&self) -> dnspod_lib::data_types::Version { self.get_version() }
-                #[inline] fn region(&self) -> Option<dnspod_lib::data_types::Region> { self.get_region() }
+                #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
+                #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
             }
         )*
 
@@ -164,7 +147,7 @@ macro_rules! define_action_list {
             $($name($name),)*
         }
 
-        impl ExtractCommonParams for $action_enum {
+        impl $crate::ExtractCommonParams for $action_enum {
             #[inline]
             fn action(&self) -> &'static str {
                 match self {
@@ -184,13 +167,13 @@ macro_rules! define_action_list {
                 }
             }
             #[inline]
-            fn version(&self) -> dnspod_lib::data_types::Version {
+            fn version(&self) -> $crate::data_types::Version {
                 match self {
                     $(Self::$name(v) => v.version(), )*
                 }
             }
             #[inline]
-            fn region(&self) -> Option<dnspod_lib::data_types::Region> {
+            fn region(&self) -> Option<$crate::data_types::Region> {
                 match self {
                     $(Self::$name(v) => v.region(), )*
                 }
@@ -224,18 +207,16 @@ macro_rules! define_action_list {
         #[inline] fn get_url(&self) -> &'static str { $expr }
     };
     (version, $expr: expr) => {
-        #[inline] fn get_version(&self) -> dnspod_lib::data_types::Version { $expr }
+        #[inline] fn get_version(&self) -> $crate::data_types::Version { $expr }
     };
     (region, $expr: expr) => {
-        #[inline] fn get_region(&self) -> Option<dnspod_lib::data_types::Region> { Some($expr) }
+        #[inline] fn get_region(&self) -> Option<$crate::data_types::Region> { Some($expr) }
     };
     ($($tt: tt)*) => {
         compile_error!("This macro only accepts `url` `region` `version`");
     };
 }
 
-use dnspod_lib::*;
-use dnspod_lib::data_types::*;
 
 define_action_list! {
     crate,
