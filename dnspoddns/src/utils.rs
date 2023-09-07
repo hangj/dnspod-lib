@@ -8,7 +8,7 @@ use anyhow::{anyhow, Result};
 /// https://httpbin.org/ip => {"origin": "192.168.1.1"}
 /// http://6.ipw.cn => 有 IPv6 地址则返回, 否则出错
 pub fn get_public_ip() -> Result<String> {
-    const URLS: &[&'static str] = &[
+    const URLS: &[&str] = &[
         "https://4.ipw.cn",
         "https://test.ipw.cn",
         "https://ipinfo.io/ip",

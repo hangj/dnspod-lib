@@ -1,14 +1,15 @@
 #![doc = include_str!("../README.md")]
 
-mod utils;
 mod args;
+mod utils;
 
 use anyhow::Result;
 
 use args::Args;
 use dnspod_lib::prelude::*;
-use dnspod_lib::response::{Response, RecordListItem};
+use dnspod_lib::response::{RecordListItem, Response};
 
+#[allow(non_snake_case)]
 fn main() -> anyhow::Result<()> {
     let Args {
         secret_id,
@@ -27,45 +28,42 @@ fn main() -> anyhow::Result<()> {
 
     let client = Client::new(secret_id, secret_key);
 
-    let res = client
-        .execute(
-            DescribeRecordList {
-                Domain: domain.clone(),
-                Subdomain: subdomain,
-                Keyword: None,
-            }
-        )?;
+    let res = client.execute(DescribeRecordList {
+        Domain: domain.clone(),
+        Subdomain: subdomain,
+        Keyword: None,
+    })?;
 
-    let record_list = res.Response.RecordList.ok_or(anyhow::anyhow!("No record list returned!"))?;
+    let record_list = res
+        .Response
+        .RecordList
+        .ok_or(anyhow::anyhow!("No record list returned!"))?;
     if record_list.is_empty() {
         return Err(anyhow::anyhow!("record list is empty!"));
     }
 
-    let RecordListItem{
+    let RecordListItem {
         RecordId,
         Value,
         Name: SubDomain,
-        Type,
+        Type: _,
         ..
     } = record_list[0].clone();
 
     // IP 地址没有变化
     if value == Value {
-        return  Ok(());
+        return Ok(());
     }
     let Value = value;
 
-    client
-        .execute(
-            ModifyDynamicDNS {
-                Domain: domain,
-                SubDomain,
-                RecordId,
-                RecordLine: dnspod_lib::data_types::RecordLine::默认,
-                Value,
-                Ttl: 60,
-            }
-        )?;
+    client.execute(ModifyDynamicDNS {
+        Domain: domain,
+        SubDomain,
+        RecordId,
+        RecordLine: dnspod_lib::data_types::RecordLine::默认,
+        Value,
+        Ttl: 60,
+    })?;
 
     Ok(())
 }
@@ -89,26 +87,21 @@ impl Client {
         let secret_key = self.secret_key.as_str();
 
         let client = &self.client;
-    
+
         let url = request.url();
         let body = request.body();
         let headers = request.headers(&secret_id, &secret_key);
         let headers = (&headers).try_into()?;
-    
-        let request = client
-            .post(url)
-            .headers(headers)
-            .body(body)
-            .build()?;
-    
+
+        let request = client.post(url).headers(headers).body(body).build()?;
+
         let res: Response = client.execute(request)?.json()?;
 
         if res.Response.Error.is_some() {
             let err = dnspod_lib::serde_json::to_string_pretty(&res)?;
             return Err(anyhow::anyhow!("{}", err));
         }
-    
+
         Ok(res)
     }
 }
-
