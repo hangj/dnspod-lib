@@ -30,9 +30,9 @@ pub mod prelude {
 pub trait ExtractCommonParams {
     fn action(&self) -> &'static str;
     fn body(&self) -> Vec<u8>;
-    fn url(&self) -> &'static str;
-    fn version(&self) -> Version;
-    fn region(&self) -> Option<Region>;
+    fn url(&self) -> &'static str { consts::DNSPOD_URL }
+    fn version(&self) -> Version { Default::default() }
+    fn region(&self) -> Option<Region> { None }
 
     fn headers(
         &self,
@@ -59,13 +59,4 @@ pub trait ExtractCommonParams {
 
         hp.into()
     }
-}
-
-
-/// This is a helper trait for the macros to overloading the default implementation
-#[allow(non_camel_case_types)]
-pub trait DefaultMetaParams {
-    #[inline] fn get_url(&self) -> &'static str { consts::DNSPOD_URL }
-    #[inline] fn get_region(&self) -> Option<Region> { None }
-    #[inline] fn get_version(&self) -> Version { Default::default() }
 }

@@ -64,20 +64,12 @@ macro_rules! define_action_list {
             $vis struct $name $tt
 
             const _: () = {
-                use $crate::DefaultMetaParams;
-
-                impl DefaultMetaParams for $name {
-                    $(
-                        $crate::define_action_list!($param_meta, $param_expr);
-                    )*
-                }
-
                 impl $crate::ExtractCommonParams for $name {
                     #[inline] fn action(&self) -> &'static str { stringify!($name) }
                     #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
-                    #[inline] fn url(&self) -> &'static str { self.get_url() }
-                    #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
-                    #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
+                    $(
+                        $crate::define_action_list!($param_meta, $param_expr);
+                    )*
                 }
             };
         )*
@@ -125,20 +117,12 @@ macro_rules! define_action_list {
             }
 
             const _: () = {
-                use $crate::DefaultMetaParams;
-
-                impl DefaultMetaParams for $name {
-                    $(
-                        $crate::define_action_list!($param_meta, $param_expr);
-                    )*
-                }
-
                 impl $crate::ExtractCommonParams for $name {
                     #[inline] fn action(&self) -> &'static str { stringify!($name) }
                     #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
-                    #[inline] fn url(&self) -> &'static str { self.get_url() }
-                    #[inline] fn version(&self) -> $crate::data_types::Version { self.get_version() }
-                    #[inline] fn region(&self) -> Option<$crate::data_types::Region> { self.get_region() }
+                    $(
+                        $crate::define_action_list!($param_meta, $param_expr);
+                    )*
                 }
             };
         )*
@@ -216,13 +200,13 @@ macro_rules! define_action_list {
     };
 
     (url, $expr: expr) => {
-        #[inline] fn get_url(&self) -> &'static str { $expr }
+        #[inline] fn url(&self) -> &'static str { $expr }
     };
     (version, $expr: expr) => {
-        #[inline] fn get_version(&self) -> $crate::data_types::Version { $expr }
+        #[inline] fn version(&self) -> $crate::data_types::Version { $expr }
     };
     (region, $expr: expr) => {
-        #[inline] fn get_region(&self) -> Option<$crate::data_types::Region> { Some($expr) }
+        #[inline] fn region(&self) -> Option<$crate::data_types::Region> { Some($expr) }
     };
     ($($tt: tt)*) => {
         compile_error!("This macro only accepts `url` `region` `version`");
