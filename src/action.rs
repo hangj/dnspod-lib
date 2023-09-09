@@ -42,98 +42,85 @@ use crate::consts;
 
 /// for `#[serde(crate = "dnspod_lib::serde")]`
 mod dnspod_lib {
+    pub use crate::data_types;
     pub use crate::serde;
+    pub use crate::consts;
 }
 
 #[macro_export]
-macro_rules! define_action_list {
-    () => {};
+macro_rules! overloading_common_params {
+    (url, $expr: expr) => {
+        #[inline] fn url(&self) -> &'static str { $expr }
+    };
+    (version, $expr: expr) => {
+        #[inline] fn version(&self) -> $crate::data_types::Version { $expr }
+    };
+    (region, $expr: expr) => {
+        #[inline] fn region(&self) -> Option<$crate::data_types::Region> { Some($expr) }
+    };
+    ($($tt: tt)*) => {
+        compile_error!("This macro only accepts `url` `region` `version`");
+    };
+}
 
-    // 手动实现 Action 且不需要有 enum 的情况, 面向外部的接口
+#[macro_export]
+macro_rules! impl_define_action_list {
     (
         $(
             $(#[$meta: meta])*
-            $(@[$param_meta: ident = $param_expr: expr])*
-            $vis: vis struct $name: ident $tt: tt
+            $(@[$my_meta: ident = $my_expr: expr])*
+            $vis: vis struct $name: ident $body: tt
         )*
     ) => {
         $(
             $(#[$meta])*
-            #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
-            #[serde(crate = "dnspod_lib::serde")]
-            $vis struct $name $tt
+            $vis struct $name $body
 
             const _: () = {
-                impl $crate::ExtractCommonParams for $name {
+                use $crate::ExtractCommonParams;
+                use $crate::serde_json;
+
+                impl ExtractCommonParams for $name {
                     #[inline] fn action(&self) -> &'static str { stringify!($name) }
-                    #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
+                    #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
                     $(
-                        $crate::define_action_list!($param_meta, $param_expr);
+                        $crate::overloading_common_params!($my_meta, $my_expr);
                     )*
                 }
             };
         )*
     };
 
-    // 手动实现 Action 带有 enum 的情况, 面向外部的接口
-    (
-        $action_enum: ident,
-        $(
-            $(#[$meta: meta])*
-            $(@[$param_meta: ident = $param_expr: expr])*
-            $vis: vis struct $name: ident $tt: tt
-        )*
-    ) => {
-        $crate::define_action_list!(
-            enum $action_enum {},
-            $(
-                $(#[$meta])*
-                $(@[$param_meta = $param_expr])*
-                $vis struct $name $tt
-            )*
-        );
-    };
-
-    // 真正干活的接口
     (
         $(#[$enum_meta: meta])*
-        enum $action_enum: ident {},
+        $enum_vis: vis enum $enum_name: ident {}
+        ,
         $(
             $(#[$meta: meta])*
-            $(@[$param_meta: ident = $param_expr: expr])*
-            $vis: vis struct $name: ident $tt: tt
+            $(@[$my_meta: ident = $my_expr: expr])*
+            $vis: vis struct $name: ident $body: tt
         )*
     ) => {
+        $crate::impl_define_action_list! {
+            $(
+                $(#[$meta])*
+                $(@[$my_meta = $my_expr])*
+                $vis struct $name $body
+            )*
+        }
+
         $(
-            $(#[$meta])*
-            #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
-            #[serde(crate = "dnspod_lib::serde")]
-            $vis struct $name $tt
-
-            impl From<$name> for $action_enum {
-                fn from(v: $name) -> Self {
-                    Self::$name(v)
-                }
+            impl From<$name> for $enum_name {
+                #[inline] fn from(v: $name) -> Self { Self::$name(v) }
             }
-
-            const _: () = {
-                impl $crate::ExtractCommonParams for $name {
-                    #[inline] fn action(&self) -> &'static str { stringify!($name) }
-                    #[inline] fn body(&self) -> Vec<u8> { $crate::serde_json::to_vec(self).unwrap() }
-                    $(
-                        $crate::define_action_list!($param_meta, $param_expr);
-                    )*
-                }
-            };
         )*
 
-        #[derive(Debug, Clone)]
         $(#[$enum_meta])*
-        pub enum $action_enum {
+        $enum_vis enum $enum_name {
             $($name($name),)*
         }
 
-        impl $crate::ExtractCommonParams for $action_enum {
+        impl $crate::ExtractCommonParams for $enum_name {
             #[inline]
             fn action(&self) -> &'static str {
                 #[allow(unreachable_patterns)]
@@ -176,47 +163,52 @@ macro_rules! define_action_list {
             }
         }
     };
+}
 
-    // 本 lib 内部使用的接口, 注入一些 meta 数据
+/// 供外部 crate 调用
+#[macro_export]
+macro_rules! define_action_list {
     (
-        crate,
-        $action_enum: ident,
-        $(
-            $(#[$meta: meta])*
-            $(@[$param_meta: ident = $param_expr: expr])*
-            $vis: vis struct $name: ident $tt: tt
-        )*
+        $($tt: tt)*
     ) => {
-        $crate::define_action_list!(
-            #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
-            enum $action_enum {},
-            $(
-                $(#[$meta])*
-                #[cfg_attr(feature = "clap", derive(clap::Parser))]
-                $(@[$param_meta = $param_expr])*
-                $vis struct $name $tt
-            )*
-        );
+        $crate::custom_meta_struct! {
+            (
+                // callback macro
+                $crate::impl_define_action_list,
+                // common metas
+                #[derive(Debug, Clone, $crate::serde::Serialize, $crate::serde::Deserialize)]
+                #[serde(crate = "dnspod_lib::serde")]
+            ),
+            $($tt)*
+        }
     };
+}
 
-    (url, $expr: expr) => {
-        #[inline] fn url(&self) -> &'static str { $expr }
-    };
-    (version, $expr: expr) => {
-        #[inline] fn version(&self) -> $crate::data_types::Version { $expr }
-    };
-    (region, $expr: expr) => {
-        #[inline] fn region(&self) -> Option<$crate::data_types::Region> { Some($expr) }
-    };
-    ($($tt: tt)*) => {
-        compile_error!("This macro only accepts `url` `region` `version`");
+macro_rules! define_action_list_private {
+    (
+        $($tt: tt)*
+    ) => {
+        $crate::impl_define_action_list! {
+            #[derive(Debug, Clone)]
+            #[cfg_attr(feature = "clap", derive(clap::Subcommand))]
+            #[allow(non_snake_case)]
+            pub enum Action {}
+            ,
+            $($tt)*
+        }
     };
 }
 
 
-define_action_list! {
-    crate,
-    Action,
+crate::custom_meta_struct! {
+    (
+        define_action_list_private, // callback macro
+
+        // 公共 meta, 赋给每个 struct 
+        #[cfg_attr(feature = "clap", derive(clap::Parser))]
+        #[derive(Debug, Clone, crate::serde::Serialize, crate::serde::Deserialize)]
+        #[serde(crate = "dnspod_lib::serde")]
+    ),
 
     /// 获取域名列表
     /// https://cloud.tencent.com/document/api/1427/56172
@@ -371,4 +363,39 @@ define_action_list! {
         #[cfg_attr(feature = "clap", arg(long))]
         pub Value: String,
     }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    super::super::define_action_list! {}
+
+    crate::define_action_list! {
+        /// fuckme 
+        @[url = "https://hangj.cnblogs.com"]
+        struct A;
+        /// hey
+        struct B;
+    }
+    
+    crate::define_action_list! {
+        /// 获取域名信息
+        /// https://cloud.tencent.com/document/api/1427/56173
+        @[url = "https://example.com"] // 公共参数可以重载 url, version, region
+        pub struct DescribeDomain {
+            /// 域名分组类型，默认为ALL
+            #[serde(rename = "Domain")]
+            pub domain: String,
+        }
+    
+        @[version = dnspod_lib::data_types::Version::Version2021_03_23]
+        #[allow(non_snake_case)]
+        pub struct CustomAction {
+            /// 域名分组类型，默认为ALL
+            pub Domain: String,
+        }
+    }    
 }

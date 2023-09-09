@@ -78,17 +78,23 @@ fn execute(request: impl ExtractCommonParams) -> Result<serde_json::Value> {
 # 自定义一个请求
 
 ```rust
-use dnspod_lib::prelude::*;
-use dnspod_lib::define_action_list;
-
-// 自定义一个代码中没有实现的请求
-define_action_list! {
+// 自定义代码中没有实现的请求
+dnspod_lib::define_action_list! {
     /// 获取域名信息
     /// https://cloud.tencent.com/document/api/1427/56173
     @[url = "https://example.com"] // 公共参数可以重载 url, version, region
     pub struct DescribeDomain {
         /// 域名分组类型，默认为ALL
+        #[serde(rename = "Domain")]
+        pub domain: String,
+    }
+
+    @[version = dnspod_lib::data_types::Version::Version2021_03_23]
+    #[allow(non_snake_case)]
+    pub struct CustomAction {
+        /// 域名分组类型，默认为ALL
         pub Domain: String,
+        // ...
     }
 }
 

@@ -14,6 +14,7 @@ pub mod error_code;
 pub mod header_params;
 pub mod response;
 pub mod signature;
+mod macros;
 mod utils;
 
 // re-export serde and serde_json
