@@ -6,10 +6,11 @@ use serde::Serializer;
 ///
 /// Example:
 ///
-/// ```rust
+/// ```
+/// # use dnspod_lib::utils::encode_hex;
 /// assert_eq!(encode_hex(&[0, 15, 16, 255]), "000f10ff");
 /// ```
-pub(crate) fn encode_hex(input: &impl AsRef<[u8]>) -> String {
+pub fn encode_hex(input: &impl AsRef<[u8]>) -> String {
     input
         .as_ref()
         .iter()

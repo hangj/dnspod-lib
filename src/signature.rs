@@ -32,6 +32,7 @@ use crate::consts::*;
 use crate::{data_types::ContentType, header_params::HeaderParams, utils::encode_hex};
 
 /// 1. 拼接规范请求串
+/// ```javascript
 /// CanonicalRequest =
 ///     HTTPRequestMethod + '\n' +
 ///     CanonicalURI + '\n' +
@@ -39,6 +40,7 @@ use crate::{data_types::ContentType, header_params::HeaderParams, utils::encode_
 ///     CanonicalHeaders + '\n' +
 ///     SignedHeaders + '\n' +
 ///     HashedRequestPayload
+/// ```
 fn canonical_request(body: &[u8], common_params: &HeaderParams, signed_headers: &str) -> String {
     let action: &'static str = common_params.action;
     let action = action.to_ascii_lowercase();
@@ -86,11 +88,13 @@ fn canonical_request(body: &[u8], common_params: &HeaderParams, signed_headers: 
 }
 
 /// 2. 拼接待签名字符串
+/// ```javascript
 /// StringToSign =
 ///     Algorithm + \n +
 ///     RequestTimestamp + \n +
 ///     CredentialScope + \n +
 ///     HashedCanonicalRequest
+/// ```
 fn string_to_sign(
     body: &[u8],
     common_params: &HeaderParams,
@@ -121,7 +125,7 @@ fn string_to_sign(
 /// 3. 计算签名
 /// 1）计算派生签名密钥，伪代码如下：
 ///
-/// ```
+/// ```javascript
 /// SecretKey = "Gu5t9xGARNpq86cd98joQYCN3*******"
 /// SecretDate = HMAC_SHA256("TC3" + SecretKey, Date) // Date 即 Credential 中的 Date 字段信息。此示例取值为 2019-02-25。
 /// SecretService = HMAC_SHA256(SecretDate, Service) // Service 即 Credential 中的 Service 字段信息。此示例取值为 dnspod
@@ -130,7 +134,7 @@ fn string_to_sign(
 ///
 /// 2）计算签名，伪代码如下：
 ///
-/// ```
+/// ```javascript
 /// Signature = HexEncode(HMAC_SHA256(SecretSigning, StringToSign))
 /// ```
 ///
@@ -153,7 +157,7 @@ fn calc_signature(
 /// 4. 拼接 Authorization
 /// 按如下格式拼接 Authorization：
 ///
-/// ```
+/// ```javascript
 /// Authorization =
 ///     Algorithm + ' ' +
 ///     'Credential=' + SecretId + '/' + CredentialScope + ', ' +

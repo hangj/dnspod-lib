@@ -1,6 +1,5 @@
 #![doc = include_str!("README.md")]
 
-
 /// 混编 `#[..]` 与 `@[..]` 整流成 `#[..]` 在前, `@[..]` 在后
 /// callback 回调宏  
 /// common_meta 赋给每一个 struct 的 meta
@@ -8,73 +7,200 @@
 /// 详细用法请查看 README.md
 #[macro_export]
 macro_rules! custom_meta_struct {
-    () => {};
+    ($($tt: tt)*) => {
+        $crate::step1! {
+            $($tt)*
+        }
+    }
+}
 
-    // 只有 callback 宏的情况
+#[macro_export]
+macro_rules! step1 {
+    () => {};
     (
-        ($($cb: tt)*) $(,)?
+        #[$meta: meta]
+        $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(($($cb)*), [], [], []);
+        $crate::step1! {
+            [ #[$meta] ],
+            $($tail)*
+        }
+    };
+    (
+        @[$($my_meta: tt)*]
+        $($tail: tt)*
+    ) => {
+        $crate::step1! {
+            [ @[$($my_meta)*] ],
+            $($tail)*
+        }
     };
 
-    // callback 宏不带参数时没有被 `()` 包起来的情况
-    // custom_meta_struct! {callback, struct A;}
+    (
+        [$($cus_meta: tt)*],
+        @[$($my_meta: tt)*]
+        $($tail: tt)*
+    ) => {
+        $crate::step1! {
+            [ $($cus_meta)* @[$($my_meta)*] ],
+            $($tail)*
+        }
+    };
+    (
+        [$($cus_meta: tt)*],
+        #[$meta: meta]
+        $($tail: tt)*
+    ) => {
+        $crate::step1! {
+            [ $($cus_meta)* #[$meta] ],
+            $($tail)*
+        }
+    };
+    (
+        [$($cus_meta: tt)*],
+        ,
+        $($tail: tt)*
+    ) => {
+        $crate::step2! {
+            (, $($cus_meta)*),
+            $($tail)*
+        }
+    };
+    (
+        [$($cus_meta: tt)*],
+        $($tail: tt)*
+    ) => {
+        $crate::step2! {
+            (, $($cus_meta)*),
+            $($tail)*
+        }
+    };
+
+    (
+        $path: path
+    ) => {
+        $crate::step2! {
+            ($path, ),
+        }
+    };
+
     (
         $path: path,
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(($path, ), [], [], [], $($tail)*);
+        $crate::step2! {
+            ($path, ),
+            $($tail)*
+        }
     };
 
-    // 入口 1
     (
-        ($cb: path, $($common_meta: tt)*),
-        # $tt: tt
+        ($($header: tt)*)
+        ,
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(
-            ($cb, $($common_meta)*),
-            [# $tt],
-            [],
-            [],
-            $($common_meta)* // 注入公共 meta
+        $crate::step2! {
+            ($($header)*),
             $($tail)*
-        );
+        }
     };
 
-    // 入口 2
     (
-        ($cb: path, $($common_meta: tt)*),
-        @ $tt: tt
+        ($($header: tt)*)
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(
-            ($cb, $($common_meta)*),
-            [],
-            [@ $tt],
-            [],
-            $($common_meta)* // 注入公共 meta
+        $crate::step2! {
+            ($($header)*),
             $($tail)*
-        );
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! step2 {
+    () => {};
+
+    (
+        $(#[$meta: meta])*,
+        $($tt: tt)*
+    ) => {
+        $crate::step2! {
+            (, $(#[$meta])* ),
+            $($tt)*
+        }
     };
 
-    // 入口 3: 没有 meta 属性的情况
     (
-        ($cb: path, $($common_meta: tt)*),
-        $vis: vis struct $name: ident $body: tt
+        (#[$meta: meta] $($tt: tt)*),
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(
-            ($cb, $($common_meta)*),
+        $crate::new_struct! {
+            ( , #[$meta] $($tt)* ),
             [],
-            [],
-            [],
-            $($common_meta)*
-            $vis struct $name $body
             $($tail)*
-        );
+        }
+    };
+    (
+        (@[$($my_meta: tt)*] $($tt: tt)*),
+        $($tail: tt)*
+    ) => {
+        $crate::new_struct! {
+            ( , @[$($my_meta)*] $($tt)* ),
+            [],
+            $($tail)*
+        }
     };
 
+    (
+        ($($cb: path $(,)?)? ),
+        $($tail: tt)*
+    ) => {
+        $crate::new_struct! {
+            ( $($cb)?, ),
+            [],
+            $($tail)*
+        }
+    };
+    (
+        ($($cb: path)? , #[$meta: meta] $($common_meta: tt)*),
+        $($tail: tt)*
+    ) => {
+        $crate::new_struct! {
+            ( $($cb)?, #[$meta] $($common_meta)* ),
+            [],
+            $($tail)*
+        }
+    };
+    (
+        ($($cb: path)? , @[$($cus_meta: tt)*] $($common_meta: tt)*),
+        $($tail: tt)*
+    ) => {
+        $crate::new_struct! {
+            ( $($cb)?, @[$($cus_meta)*] $($common_meta)* ),
+            [],
+            $($tail)*
+        }
+    };
+
+    (
+        ($($tt: tt)*) $(,)?
+    ) => {};
+}
+
+#[macro_export]
+macro_rules! custom_meta_struct_impl {
+    (
+        ($($cb: tt)*),
+        [$($meta: tt)*],
+        [$($my_meta: tt)*],
+        [$($strct: tt)*],
+        // struct 部分不存在的情况
+    ) => {
+        $crate::new_struct! {
+            ( $($cb)* ),
+            [ $($strct)* ],
+        }
+    };
     // 拆分组装车间 1
     (
         ($($cb: tt)*),
@@ -84,7 +210,7 @@ macro_rules! custom_meta_struct {
         # $tt: tt
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(
+        $crate::custom_meta_struct_impl!(
             ($($cb)*),
             [$($meta)* # $tt], 
             [$($my_meta)*], 
@@ -101,7 +227,7 @@ macro_rules! custom_meta_struct {
         @ $tt: tt
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct!(
+        $crate::custom_meta_struct_impl!(
             ($($cb)*),
             [$($meta)*], 
             [$($my_meta)* @ $tt], 
@@ -112,7 +238,7 @@ macro_rules! custom_meta_struct {
 
     // 组装 struct
     (
-        ($cb: path, $($common_meta: tt)*),
+        ($($cb: tt)*),
         [$($meta: tt)*],
         [$($my_meta: tt)*],
         [$($strct: tt)*],
@@ -120,9 +246,7 @@ macro_rules! custom_meta_struct {
         $($tail: tt)*
     ) => {
         $crate::new_struct! {
-            ($cb, $($common_meta)*),
-            [],
-            [],
+            ($($cb)*),
             [
                 $($strct)*
                 $($meta)*
@@ -132,47 +256,28 @@ macro_rules! custom_meta_struct {
             $($tail)*
         }
     };
-
-    // 最终汇入此处
-    (
-        ($cb: path, $($common_meta: tt)*),
-        [],
-        [],
-        [$($strct: tt)*] $(,)?
-    ) => {
-        $cb! {
-            $($strct)*
-        }
-    };
 }
-
 
 #[macro_export]
 macro_rules! new_struct {
     (
-        ($cb: path, $($common_meta: tt)*),
-        [],
-        [],
+        ($($cb: tt)*),
         [$($strct: tt)*],
     ) => {
-        $crate::custom_meta_struct! {
-            ($cb, $($common_meta)*),
-            [],
-            [],
+        $crate::finally! {
+            ($($cb)*),
             [$($strct)*],
         }
     };
 
     (
-        ($cb: path, $($common_meta: tt)*),
-        [],
-        [],
+        ($($cb: path)?, $($common_meta: tt)*),
         [$($strct: tt)*],
         $tt: tt
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct! {
-            ($cb, $($common_meta)*),
+        $crate::custom_meta_struct_impl! {
+            ($($cb)?, $($common_meta)*),
             [],
             [],
             [$($strct)*],
@@ -183,25 +288,97 @@ macro_rules! new_struct {
     };
 }
 
+#[macro_export]
+macro_rules! finally {
+    (
+        ($cb: path, $($common_meta: tt)*),
+        [$($strct: tt)*] $(,)?
+    ) => {
+        $cb! {
+            $($strct)*
+        }
+    };
+
+    (
+        (, $($common_meta: tt)*),
+        [$($strct: tt)*] $(,)?
+    ) => {
+        $($strct)*
+    };
+}
+
+
 
 
 #[cfg(test)]
 mod tests {
+    custom_meta_struct! {}
+    custom_meta_struct! {
+        ()
+    }
+    custom_meta_struct! {
+        (),
+    }
+
+    macro_rules! fuck {
+        ($($tt: tt)*) => {};
+    }
+    custom_meta_struct! {
+        fuck
+    }
+    custom_meta_struct! {
+        fuck,
+    }
+
+    custom_meta_struct! {
+        #[derive(Debug)]
+        ,
+    }
+
+    custom_meta_struct! {
+        #[derive(Debug)]
+        #[derive(Clone)]
+        ,
+    }
+
+    custom_meta_struct! {
+        #[derive(Debug)]
+        #[derive(Clone)]
+        ,
+
+        struct Hello;
+        struct World;
+    }
+
+    custom_meta_struct! {
+        (#[derive(Debug)]),
+    }
+    custom_meta_struct! {
+        (@[derive(Debug)])
+    }
+
+    custom_meta_struct! {
+        (
+            #[derive(Clone)]
+            #[derive(Debug)]
+        ),
+        struct TestA;
+    }
+
     macro_rules! define_structs {
         (
             $(
                 $(#[$meta: meta])*
-                $(@[$my_meta: meta])*
+                $(@[$($my_meta: tt)*])*
                 $vis: vis struct $name: ident $body: tt
             )*
-        ) => {
-            
-        };
+        ) => {};
     }
 
     custom_meta_struct! {
         define_structs,
         struct A;
+        struct B;
     }
     custom_meta_struct! {
         (
@@ -212,6 +389,7 @@ mod tests {
 
         struct A;
         struct B{}
+        @[fuck]
         struct C;
     }
     custom_meta_struct! {
@@ -244,6 +422,48 @@ mod tests {
         @[公众号 = RustHub]
         struct C {
             v: String,
+        }
+    }
+}
+
+
+#[cfg(test)]
+mod test2 {
+    #[test]
+    fn test() {
+        macro_rules! define_structs {
+            (
+                $(
+                    $(#[$meta: meta])*
+                    $(@[$($my_meta: tt)*])*
+                    $vis: vis struct $name: ident $body: tt
+                )*
+            ) => {
+                println!("{}", stringify!(
+                    $(
+                        $(#[$meta])*
+                        $(@[$($my_meta)*])*
+                        $vis struct $name $body
+                    )*
+                ))
+            };
+        }
+
+        crate::custom_meta_struct! {
+            define_structs,
+            struct A;
+            struct B;
+        }
+        crate::custom_meta_struct! {
+            (
+                define_structs,
+                #[derive(Debug)]
+                @[hello world]
+                #[derive(Hash)]
+            ),
+            struct A;
+            #[derive(Clone)]
+            struct B;
         }
     }
 }

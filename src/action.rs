@@ -1,36 +1,7 @@
-//! 定义各个 Action
+//! 定义各个 Action 请求
 //! 
 //! 添加具体 Action 时可以通过 `@[url = consts::DNSPOD_URL]` 覆盖掉默认公共参数。可以覆盖的还有 region 和 version
 //! 
-//! Example:
-//! 
-//! ```rust
-//! /// 获取域名列表
-//! /// https://cloud.tencent.com/document/api/1427/56172
-//! @[url = consts::DNSPOD_URL]
-//! @[version = Version::Version2021_03_23]
-//! pub struct DescribeDomainList {
-//!     /// 域名分组类型，默认为ALL
-//!     #[cfg_attr(feature = "clap", arg(long, value_enum, default_value_t=Default::default()))]
-//!     pub Type: DomainType,
-//!     /// 记录开始的偏移, 第一条记录为 0, 依次类推。默认值为0。
-//!     /// 示例值：0
-//!     #[cfg_attr(feature = "clap", arg(long, default_value_t=0))]
-//!     pub Offset: Integer,
-//!     /// 要获取的域名数量, 比如获取20个, 则为20。默认值为3000。
-//!     /// 示例值：20
-//!     #[cfg_attr(feature = "clap", arg(long, default_value_t=3000))]
-//!     pub Limit: Integer,
-//!     /// 分组ID, 第一个组为 0, 获取指定分组的域名
-//!     /// 示例值：1
-//!     #[cfg_attr(feature = "clap", arg(long, default_value_t=0))]
-//!     pub GroupId: Integer,
-//!     /// 根据关键字搜索域名
-//!     /// 示例值：qq
-//!     #[cfg_attr(feature = "clap", arg(long, default_value=""))]
-//!     pub Keyword: Option<String>,
-//! }
-//! ```
 
 #![allow(non_snake_case)]
 
@@ -97,14 +68,14 @@ macro_rules! impl_define_action_list {
         ,
         $(
             $(#[$meta: meta])*
-            $(@[$my_meta: ident = $my_expr: expr])*
+            $(@[$($my_meta: tt)*])*
             $vis: vis struct $name: ident $body: tt
         )*
     ) => {
         $crate::impl_define_action_list! {
             $(
                 $(#[$meta])*
-                $(@[$my_meta = $my_expr])*
+                $(@[$($my_meta)*])*
                 $vis struct $name $body
             )*
         }
@@ -204,7 +175,7 @@ crate::custom_meta_struct! {
     (
         define_action_list_private, // callback macro
 
-        // 公共 meta, 赋给每个 struct 
+        // 公共 meta attribute, 赋给每个 struct 
         #[cfg_attr(feature = "clap", derive(clap::Parser))]
         #[derive(Debug, Clone, crate::serde::Serialize, crate::serde::Deserialize)]
         #[serde(crate = "dnspod_lib::serde")]

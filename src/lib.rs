@@ -15,7 +15,7 @@ pub mod header_params;
 pub mod response;
 pub mod signature;
 mod macros;
-mod utils;
+pub mod utils;
 
 // re-export serde and serde_json
 // #[allow(unused_imports)]

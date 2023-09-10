@@ -20,21 +20,19 @@ my_macro! {
 
 // 自动展开为:
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct ActionA {...}
+struct ActionA {}
 
 impl SomeCommonTrait for ActionA {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "clap", arg(long, value_enum, default_value_t=Default::default()))]
-struct ActionB {...}
+struct ActionB {}
 
 impl SomeCommonTrait for ActionB {}
 
 #[cfg(feature = "RustHub")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct ActionC {...}
-
-impl SomeCommonTrait for ActionC {}
+struct ActionC {}
 ```
 
 其中 `@[..]` 为我的自定义属性, 用来重载个别请求(action)的公共参数(url, version, region), 
@@ -64,7 +62,7 @@ macro_rules! define_structs {
 
 ```rust
 // 通过 custom_meta_struct 的预处理, define_structs 就可以很好的接收原来无法匹配的内容了
-custom_meta_struct! {
+dnspod_lib::custom_meta_struct! {
     define_structs,
 
     struct A;
@@ -100,6 +98,19 @@ custom_meta_struct! {
     struct A;
     struct B;
     // ...
+}
+```
+
+如果你不需要 `@[..]`, 只想添加一些公共的 `#[..]`, 则不需要配置 callback macro  
+
+```rust
+dnspod_lib::custom_meta_struct! {
+    (
+        #[derive(Debug)]
+        #[derive(Clone)]
+    ),
+    struct A;
+    struct B;
 }
 ```
 

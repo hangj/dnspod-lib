@@ -175,11 +175,18 @@ impl<'de> Deserialize<'de> for DnsPodDate {
     }
 }
 
+
+#[test]
+#[should_panic]
+fn should_panic() {
+    // https://serde.rs/custom-date-format.html
+    const FORMAT: &'static str = "%Y-%m-%d %H:%M:%S";
+    let s = "\"0000-00-00 00:00:00\"";
+    let dt = Utc.datetime_from_str(s, FORMAT).unwrap();
+}
+
 #[test]
 fn test() {
-    let s = "\"0000-00-00 00:00:00\"";
-    assert!(serde_json::from_str::<'_, Timestamp>(s).is_err());
-
     let s = "\"0000-01-01 00:00:00\"";
     let t: Timestamp = serde_json::from_str(s).unwrap();
     let s = serde_json::to_string_pretty(&t).unwrap();
