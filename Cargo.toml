@@ -20,6 +20,8 @@ members = [
 ]
 
 [features]
+# Nothing by default
+default = []
 clap = ["dep:clap"]
 
 [dependencies]
