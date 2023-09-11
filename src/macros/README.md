@@ -6,6 +6,15 @@ dnspod 的每个请求(action)的参数都不太一样, 但公共参数(url, ver
 所以我需要一个宏来帮助我完成下面的任务  
 
 ```rust
+use serde::Serialize;
+use serde::Deserialize;
+
+macro_rules! my_macro {
+    ($($tt: tt)*) => {};
+}
+
+trait SomeCommonTrait {}
+
 my_macro! {
     struct ActionA {...}
     
@@ -61,6 +70,18 @@ macro_rules! define_structs {
 看个例子:
 
 ```rust
+macro_rules! define_structs {
+    (
+        $(
+            $(#[$meta: meta])*
+            $(@[$my_meta: meta])*
+            $vis: vis struct $name: ident $body: tt
+        )*
+    ) => {
+        // ...
+    };
+}
+
 // 通过 custom_meta_struct 的预处理, define_structs 就可以很好的接收原来无法匹配的内容了
 dnspod_lib::custom_meta_struct! {
     define_structs,
@@ -84,15 +105,14 @@ macro_rules! define_structs {
     ) => {};
 }
 
-custom_meta_struct! {
-    // 参数可以随便传, 它们会被原样传递到 define_structs 的第一个参数 [..] 里面
+dnspod_lib::custom_meta_struct! {
     (
         // callback macro
         define_structs,
         // common metas for every struct
         #[derive(Debug)]
-        #[derive(Clone)]
         @[url = "https://example.com"]
+        #[derive(Clone)]
     ),
 
     struct A;
@@ -133,7 +153,7 @@ macro_rules! impl_macro {
 #[macro_export]
 macro_rules! public_macro {
     ($($tt: tt)*) => {
-        custom_meta_struct! {
+        dnspod_lib::custom_meta_struct! {
             $crate::impl_macro,
             $($tt)*
         }

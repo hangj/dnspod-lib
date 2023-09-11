@@ -230,25 +230,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e496a50fda8aacccc86d7529e2c1e0892dbd0f898a6b5645b5561b89c3210efa"
 
 [[package]]
+name = "ddnspod"
+version = "0.1.2"
+dependencies = [
+ "anyhow",
+ "clap",
+ "dnspod-lib 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand",
+ "reqwest",
+]
+
+[[package]]
 name = "dnspod-cli"
 version = "0.1.2"
 dependencies = [
  "anyhow",
  "clap",
- "dnspod-lib 0.1.9",
+ "dnspod-lib 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest",
 ]
 
 [[package]]
 name = "dnspod-lib"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ad3639d7c11e6c306cd834c97068cab9f78a05dc076871740caa91b10bcd1f9"
+version = "0.1.10"
 dependencies = [
+ "anyhow",
  "chrono",
  "clap",
  "hmac-sha256",
  "literal-enum",
+ "reqwest",
  "serde",
  "serde_json",
 ]
@@ -256,6 +267,8 @@ dependencies = [
 [[package]]
 name = "dnspod-lib"
 version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d672af134aed57b62644f4185353d043473e4be09c6890255a7c1b7f9242dd4"
 dependencies = [
  "chrono",
  "clap",
@@ -263,17 +276,6 @@ dependencies = [
  "literal-enum",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "dnspoddns"
-version = "0.1.2"
-dependencies = [
- "anyhow",
- "clap",
- "dnspod-lib 0.1.9",
- "rand",
- "reqwest",
 ]
 
 [[package]]

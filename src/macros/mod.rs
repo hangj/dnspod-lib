@@ -429,30 +429,29 @@ mod tests {
 
 #[cfg(test)]
 mod test2 {
+    macro_rules! structs_to_string {
+        (
+            $(
+                $(#[$meta: meta])*
+                $(@[$($my_meta: tt)*])*
+                $vis: vis struct $name: ident $body: tt
+            )*
+        ) => {
+            stringify!(
+                $(
+                    $(#[$meta])*
+                    $(@[$($my_meta)*])*
+                    $vis struct $name $body
+                )*
+            )
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+        };
+    }
+
     #[test]
     fn test() {
-        macro_rules! structs_to_string {
-            (
-                $(
-                    $(#[$meta: meta])*
-                    $(@[$($my_meta: tt)*])*
-                    $vis: vis struct $name: ident $body: tt
-                )*
-            ) => {
-                stringify!(
-                    $(
-                        $(#[$meta])*
-                        $(@[$($my_meta)*])*
-                        $vis struct $name $body
-                    )*
-                )
-                .split_whitespace()
-                .collect::<Vec<_>>()
-                .join(" ")
-            };
-        }
-
-
         {
             crate::custom_meta_struct! {
                 #[derive(Debug)]
@@ -460,7 +459,7 @@ mod test2 {
                 #[derive(Clone)]
                 struct A;
             }
-            println!("{:?}", A.clone());
+            assert_eq!(format!("{:?}", A.clone()), "A");
         }
 
         {
@@ -471,8 +470,22 @@ mod test2 {
                 struct A;
                 struct B;
             }
-            println!("{:?}", A.clone());
-            println!("{:?}", B);
+            assert_eq!(format!("{:?}", A.clone()), "A");
+            assert_eq!(format!("{:?}", B), "B");
+        }
+
+        {
+            crate::custom_meta_struct! {
+                (
+                    #[derive(Debug)]
+                    #[derive(Clone)]
+                ),
+                struct A;
+                struct B;
+            }
+
+            assert_eq!(format!("{:?}", A.clone()), "A");
+            assert_eq!(format!("{:?}", B.clone()), "B");
         }
 
         assert_eq!(
@@ -482,6 +495,26 @@ mod test2 {
                 }
             },
             ""
+        );
+        assert_eq!(
+            {
+                crate::custom_meta_struct! {
+                    (structs_to_string),
+                    struct A;
+                }
+            },
+            "struct A ;"
+        );
+        assert_eq!(
+            {
+                crate::custom_meta_struct! {
+                    (structs_to_string, ),
+                    struct A;
+                    #[derive(Debug)]
+                    struct B;
+                }
+            },
+            "struct A ; #[derive(Debug)] struct B ;"
         );
 
         assert_eq!(

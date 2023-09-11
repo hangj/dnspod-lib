@@ -16,8 +16,11 @@ exclude = ["/.github/*", "/.gitattributes", "/appveyor.yml", "/Changelog.md", "/
 [workspace]
 members = [
     "dnspod-cli",
-    "dnspoddns",
+    "ddnspod",
 ]
+
+[features]
+clap = ["dep:clap"]
 
 [dependencies]
 chrono = "0.4.28"
@@ -27,8 +30,10 @@ serde = { version = "1.0.188", features = ["serde_derive"] }
 serde_json = "1.0.105"
 clap = { version = "4.4.2", features = ["derive", "string"], optional = true }
 
-[features]
-clap = ["dep:clap"]
+# for testing
+[dev-dependencies]
+anyhow = "1.0.75"
+reqwest = { version = "0.11.20", features = ["json", "blocking"] }
 
 [patch.crates-io]
 # literal-enum = { path = "../literal-enum" }

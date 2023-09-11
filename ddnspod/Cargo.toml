@@ -1,19 +1,19 @@
 [package]
-name = "dnspoddns"
+name = "ddnspod"
 version = "0.1.2"
 edition = "2021"
 authors = ["hangj <guijie.han@gmail.com>"]
 readme = "README.md"
 description = "A ddns command line tool for dnspod"
-keywords = ["dnspod", "ddns", "dnspoddns"]
+keywords = ["dnspod", "ddns", "ddnspod"]
 license = "MIT"
 repository = "https://github.com/hangj/dnspod-lib"
-documentation = "https://docs.rs/dnspoddns/"
+documentation = "https://docs.rs/ddnspod/"
 exclude = ["/.github/*", "/.gitattributes", "/appveyor.yml", "/Changelog.md", "/clippy.toml", "/codecov.yml"]
 
 [dependencies]
-dnspod-lib = { version = "0.1.9", features = ["clap"]}
-# dnspod-lib = { path = "..", features = ["clap"]}
+dnspod-lib = { version = "0.1.10" }
+# dnspod-lib = { path = ".." }
 anyhow = "1.0.75"
 clap = { version = "4.4.2", features = ["derive", "string", "env"] }
 reqwest = { version = "0.11.20", features = ["json", "blocking"] }

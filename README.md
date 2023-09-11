@@ -28,17 +28,17 @@ fn main() -> Result<()> {
             GroupId: 0,
             Keyword: None,
         }
-    )?;
-    println!("res: {}", res);
+    ); // ?;
+    println!("res: {:?}", res);
 
     let res = execute(
         DescribeRecordList {
-            Domain: "youran.de".into(),
+            Domain: "example.com".into(),
             Subdomain: None,
             Keyword: None,
         }
-    )?;
-    println!("res: {}", res);
+    ); // ?;
+    println!("res: {:?}", res);
 
     Ok(())
 }
@@ -98,6 +98,6 @@ dnspod_lib::define_action_list! {
     }
 }
 
-execute(DescribeDomain { Domain: "example.com".into() })?;
+// execute(DescribeDomain { domain: "example.com".into() })?;
 ```
 
