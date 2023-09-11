@@ -210,13 +210,13 @@ macro_rules! custom_meta_struct_impl {
         # $tt: tt
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct_impl!(
+        $crate::custom_meta_struct_impl! {
             ($($cb)*),
             [$($meta)* # $tt], 
             [$($my_meta)*], 
             [$($strct)*],
             $($tail)*
-        );
+        }
     };
     // 拆分组装车间 2
     (
@@ -227,13 +227,13 @@ macro_rules! custom_meta_struct_impl {
         @ $tt: tt
         $($tail: tt)*
     ) => {
-        $crate::custom_meta_struct_impl!(
+        $crate::custom_meta_struct_impl! {
             ($($cb)*),
             [$($meta)*], 
             [$($my_meta)* @ $tt], 
             [$($strct)*],
             $($tail)*
-        );
+        }
     };
 
     // 组装 struct
@@ -439,31 +439,46 @@ mod test2 {
                     $vis: vis struct $name: ident $body: tt
                 )*
             ) => {
-                println!("{}", stringify!(
-                    $(
-                        $(#[$meta])*
-                        $(@[$($my_meta)*])*
-                        $vis struct $name $body
-                    )*
-                ))
+                println!("{}", 
+                    stringify!(
+                        $(
+                            $(#[$meta])*
+                            $(@[$($my_meta)*])*
+                            $vis struct $name $body
+                        )*
+                    )
+                );
+                9
             };
         }
 
-        crate::custom_meta_struct! {
-            define_structs,
-            struct A;
-            struct B;
-        }
-        crate::custom_meta_struct! {
-            (
-                define_structs,
-                #[derive(Debug)]
-                @[hello world]
-                #[derive(Hash)]
-            ),
-            struct A;
-            #[derive(Clone)]
-            struct B;
-        }
+        let  s = {
+            crate::custom_meta_struct! {
+                (
+                    define_structs,
+                    #[derive(Debug)]
+                ),
+                struct A;
+                struct B;
+            }
+        };
+
+        // println!("s: {}", s);
+
+        let s = {
+            crate::custom_meta_struct! {
+                (
+                    define_structs,
+                    #[derive(Debug)]
+                    @[hello world]
+                    #[derive(Hash)]
+                ),
+                struct A;
+                #[derive(Clone)]
+                struct B;
+            }
+        };
+
+        // println!("s: {}", s);
     }
 }
