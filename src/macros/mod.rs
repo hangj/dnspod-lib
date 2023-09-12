@@ -1,10 +1,8 @@
 #![doc = include_str!("README.md")]
 
 /// 混编 `#[..]` 与 `@[..]` 整流成 `#[..]` 在前, `@[..]` 在后
-/// callback 回调宏  
-/// common_meta 赋给每一个 struct 的 meta
 /// 
-/// 详细用法请查看 README.md
+/// 详细用法请查看 [README.md](https://github.com/hangj/dnspod-lib/tree/main/src/macros)
 #[macro_export]
 macro_rules! custom_meta_struct {
     ($($tt: tt)*) => {
@@ -307,7 +305,7 @@ macro_rules! finally {
     };
 }
 
-
+// ---------------------------------------------------------------- //
 
 
 #[cfg(test)]
@@ -549,3 +547,4 @@ mod test2 {
         );
     }
 }
+

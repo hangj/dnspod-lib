@@ -20,13 +20,13 @@ mod dnspod_lib {
 
 #[macro_export]
 macro_rules! overloading_common_params {
-    (url, $expr: expr) => {
+    (url = $expr: expr) => {
         #[inline] fn url(&self) -> &'static str { $expr }
     };
-    (version, $expr: expr) => {
+    (version = $expr: expr) => {
         #[inline] fn version(&self) -> $crate::data_types::Version { $expr }
     };
-    (region, $expr: expr) => {
+    (region = $expr: expr) => {
         #[inline] fn region(&self) -> Option<$crate::data_types::Region> { Some($expr) }
     };
     ($($tt: tt)*) => {
@@ -39,7 +39,7 @@ macro_rules! impl_define_action_list {
     (
         $(
             $(#[$meta: meta])*
-            $(@[$my_meta: ident = $my_expr: expr])*
+            $(@[$($my_meta: tt)*])*
             $vis: vis struct $name: ident $body: tt
         )*
     ) => {
@@ -55,7 +55,7 @@ macro_rules! impl_define_action_list {
                     #[inline] fn action(&self) -> &'static str { stringify!($name) }
                     #[inline] fn body(&self) -> Vec<u8> { serde_json::to_vec(self).unwrap() }
                     $(
-                        $crate::overloading_common_params!($my_meta, $my_expr);
+                        $crate::overloading_common_params! { $($my_meta)* }
                     )*
                 }
             };
