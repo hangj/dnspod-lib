@@ -207,8 +207,16 @@ crate::custom_meta_struct! {
         pub Keyword: Option<String>,
     }
 
-    /// 添加记录
-    /// <https://cloud.tencent.com/document/api/1427/56180>
+    /// 添加域名 <https://cloud.tencent.com/document/api/1427/56184>
+    pub struct CreateDomain {
+        Domain: String,
+    }
+    /// 删除域名 <https://cloud.tencent.com/document/api/1427/56178>
+    pub struct DeleteDomain {
+        Domain: String,
+    }
+
+    /// 添加记录 <https://cloud.tencent.com/document/api/1427/56180>
     pub struct CreateRecord {
         /// 域名
         /// 示例值：dnspod.cn

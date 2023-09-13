@@ -145,27 +145,39 @@ pub enum DomainType {
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum DomainGrade {
     /// 免费套餐
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     D_FREE,
     /// 个人豪华
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     D_PLUS,
     /// 企业1
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     D_EXTRA,
     /// 企业2
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     D_EXPERT,
     /// 企业3
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     D_ULTRA,
     /// 免费
     #[default]
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     DP_FREE,
     /// 个人专业版
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     DP_PLUS,
     /// 企业创业版
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     DP_EXTRA,
     /// 企业标准版
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     DP_EXPERT,
     /// 企业旗舰版
+    #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     DP_ULTRA,
 }
+
+
 
 /// 注意: 服务器有时会返回 "0000-00-00", 会导致 date 解析出错
 /// 所以直接用 String 会有更好的兼容性

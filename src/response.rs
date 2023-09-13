@@ -55,6 +55,9 @@ crate::custom_meta_struct! {
         pub LineList: Option<Vec<LineInfo>>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub LineGroupList: Option<Vec<LineGroupInfo>>,
+        /// 域名信息
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub DomainInfo: Option<DomainCreateInfo>,
     }
 
     pub struct Error {
@@ -321,6 +324,18 @@ crate::custom_meta_struct! {
         Type: String,	
         /// 线路分组包含的线路列表
         LineList: Vec<String>,
+    }
+
+    /// 域名信息（创建域名时返回） 被如下接口引用：[CreateDomain](super::action::CreateDomain)
+    pub struct DomainCreateInfo {
+        /// 域名ID
+        Id: Integer,
+        /// 域名
+        Domain: String,
+        /// 域名的punycode 示例值：dnspod.cn
+        Punycode: String,
+        /// 域名的NS列表 示例值：["source.dnspod.net","low.dnspod.net"]
+        GradeNsList: Vec<String>,
     }
 }
 
