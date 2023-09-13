@@ -1,5 +1,5 @@
 //! 签名方法 v3
-//! https://cloud.tencent.com/document/api/1427/56189
+//! <https://cloud.tencent.com/document/api/1427/56189>
 //!
 //! CanonicalRequest =
 //! HTTPRequestMethod + '\n' +

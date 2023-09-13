@@ -1,5 +1,5 @@
-//! 返回结果 https://cloud.tencent.com/document/api/1427/56191
-//! 参数类型 https://cloud.tencent.com/document/api/1427/78480
+//! 返回结果 <https://cloud.tencent.com/document/api/1427/56191>
+//! 参数类型 <https://cloud.tencent.com/document/api/1427/78480>
 //!
 //! 目前腾讯云 API 3.0 输入参数和输出参数支持如下几种数据格式：
 //!
@@ -25,7 +25,7 @@ crate::custom_meta_struct! {
     ),
 
     /// 返回结果
-    /// https://cloud.tencent.com/document/api/1427/56191
+    /// <https://cloud.tencent.com/document/api/1427/56191>
     pub struct Response {
         pub Response: InnerResponse,
     }
@@ -51,6 +51,10 @@ crate::custom_meta_struct! {
         pub DomainCountInfo: Option<DomainCountInfo>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub DomainList: Option<Vec<DomainListItem>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub LineList: Option<Vec<LineInfo>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub LineGroupList: Option<Vec<LineGroupInfo>>,
     }
 
     pub struct Error {
@@ -121,15 +125,15 @@ crate::custom_meta_struct! {
         /// 示例值：www
         pub SubDomain: String,
 
-        /// RecordType    String    记录类型, 详见 [DescribeRecordType] 接口。
+        /// RecordType    String    记录类型, 详见 [DescribeRecordType](super::action::DescribeRecordType) 接口。
         /// 示例值：A
         pub RecordType: String,
 
-        /// RecordLine    String    解析记录的线路，详见 [DescribeRecordLineList] 接口。
+        /// RecordLine    String    解析记录的线路，详见 [DescribeRecordLineList](super::action::DescribeRecordLineList) 接口。
         /// 示例值：百度
         pub RecordLine: String,
 
-        /// RecordLineId    String    解析记录的线路 ID ，详见 [DescribeRecordLineList] 接口。
+        /// RecordLineId    String    解析记录的线路 ID ，详见 [DescribeRecordLineList](super::action::DescribeRecordLineList) 接口。
         /// 示例值：90=0
         pub RecordLineId: String,
 
@@ -297,5 +301,26 @@ crate::custom_meta_struct! {
         pub TagValue: Option<String>,
     }
 
+    /// 解析线路信息
+    ///被如下接口引用：[DescribeRecordLineList](super::action::DescribeRecordLineList)
+    pub struct LineInfo {
+        /// 线路名称 示例值：电信
+        Name: String,
+        /// 线路ID 示例值：10=0
+        LineId: String,
+    }
+
+    /// 线路分组信息
+    /// 被如下接口引用：[DescribeRecordLineList](super::action::DescribeRecordLineList)
+    pub struct LineGroupInfo {
+        /// 线路分组ID 示例值：15=0
+        LineId: String,	
+        /// 线路分组名称 示例值：华北
+        Name: String,
+        /// 分组类型 示例值：system
+        Type: String,	
+        /// 线路分组包含的线路列表
+        LineList: Vec<String>,
+    }
 }
 

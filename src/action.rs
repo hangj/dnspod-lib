@@ -182,7 +182,7 @@ crate::custom_meta_struct! {
     ),
 
     /// 获取域名列表
-    /// https://cloud.tencent.com/document/api/1427/56172
+    /// <https://cloud.tencent.com/document/api/1427/56172>
     @[url = consts::DNSPOD_URL]
     @[version = Version::Version2021_03_23]
     pub struct DescribeDomainList {
@@ -208,7 +208,7 @@ crate::custom_meta_struct! {
     }
 
     /// 添加记录
-    /// https://cloud.tencent.com/document/api/1427/56180
+    /// <https://cloud.tencent.com/document/api/1427/56180>
     pub struct CreateRecord {
         /// 域名
         /// 示例值：dnspod.cn
@@ -233,20 +233,20 @@ crate::custom_meta_struct! {
     }
 
     /// 删除记录
-    /// https://cloud.tencent.com/document/api/1427/56176
+    /// <https://cloud.tencent.com/document/api/1427/56176>
     pub struct DeleteRecord {
         /// 域名
         /// 示例值：dnspod.cn
         #[cfg_attr(feature = "clap", arg(long))]
         pub Domain: String,
-        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 [RecordId]
+        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 RecordId
         /// 示例值：162
         #[cfg_attr(feature = "clap", arg(long))]
         pub RecordId: u64,
     }
 
     /// 获取域名的解析记录列表
-    /// https://cloud.tencent.com/document/api/1427/56166
+    /// <https://cloud.tencent.com/document/api/1427/56166>
     pub struct DescribeRecordList {
         /// 要获取的解析记录所属的域名
         /// 示例值：example.com
@@ -265,20 +265,42 @@ crate::custom_meta_struct! {
     }
 
     /// 获取记录信息
-    /// https://cloud.tencent.com/document/api/1427/56168
+    /// <https://cloud.tencent.com/document/api/1427/56168>
     pub struct DescribeRecord {
         /// 域名
         /// 示例值：dnspod.cn
         #[cfg_attr(feature = "clap", arg(long))]
         pub Domain: String,
-        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 [RecordId]
+        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 RecordId
         /// 示例值：162
         #[cfg_attr(feature = "clap", arg(long))]
         pub RecordId: u64,
     }
 
+    /// 获取等级允许的记录类型 <https://cloud.tencent.com/document/api/1427/56165>
+    pub struct DescribeRecordType {
+        /// 域名等级。
+        /// 
+        /// + 旧套餐：D_FREE、D_PLUS、D_EXTRA、D_EXPERT、D_ULTRA 分别对应免费套餐、个人豪华、企业1、企业2、企业3。
+        /// 
+        /// + 新套餐：DP_FREE、DP_PLUS、DP_EXTRA、DP_EXPERT、DP_ULTRA 分别对应新免费、个人专业版、企业创业版、企业标准版、企业旗舰版。
+        /// 
+        /// 示例值：DP_Plus
+        #[cfg_attr(feature = "clap", arg(long))]
+        pub DomainGrade: DomainGrade,
+    }
+    /// 获取等级允许的线路 <https://cloud.tencent.com/document/api/1427/56167>
+    pub struct DescribeRecordLineList {
+        /// 域名。
+        /// 示例值：dnspod.cn
+        pub Domain: String,
+        #[cfg_attr(feature = "clap", arg(long))]
+        /// 域名等级
+        pub DomainGrade: DomainGrade,
+    }
+
     /// 更新动态 DNS 记录
-    /// https://cloud.tencent.com/document/api/1427/56158
+    /// <https://cloud.tencent.com/document/api/1427/56158>
     pub struct ModifyDynamicDNS {
         /// 域名
         /// 示例值：dnspod.cn
@@ -288,7 +310,7 @@ crate::custom_meta_struct! {
         /// 示例值：www
         #[cfg_attr(feature = "clap", arg(long, default_value="@"))]
         pub SubDomain: String,
-        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 [RecordId]
+        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 RecordId
         /// 示例值：162
         #[cfg_attr(feature = "clap", arg(long))]
         pub RecordId: u64,
@@ -307,7 +329,7 @@ crate::custom_meta_struct! {
     }
 
     /// 修改记录
-    /// https://cloud.tencent.com/document/api/1427/56157
+    /// <https://cloud.tencent.com/document/api/1427/56157>
     pub struct ModifyRecord {
         /// 域名
         /// 示例值：dnspod.cn
@@ -317,7 +339,7 @@ crate::custom_meta_struct! {
         /// 示例值：www
         #[cfg_attr(feature = "clap", arg(long, default_value="@"))]
         pub SubDomain: String,
-        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 [RecordId]
+        /// 记录 ID 。可以通过接口 [DescribeRecordList] 查到所有的解析记录列表以及对应的 RecordId
         /// 示例值：162
         #[cfg_attr(feature = "clap", arg(long))]
         pub RecordId: u64,
@@ -354,7 +376,7 @@ mod tests {
     
     crate::define_action_list! {
         /// 获取域名信息
-        /// https://cloud.tencent.com/document/api/1427/56173
+        /// <https://cloud.tencent.com/document/api/1427/56173>
         @[url = "https://example.com"] // 公共参数可以重载 url, version, region
         pub struct DescribeDomain {
             /// 域名分组类型，默认为ALL

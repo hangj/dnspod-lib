@@ -1,4 +1,4 @@
-//! https://cloud.tencent.com/document/api/1427/56188
+//! <https://cloud.tencent.com/document/api/1427/56188>
 
 use std::collections::HashMap;
 

@@ -1,5 +1,5 @@
 //! 参数类型
-//! https://cloud.tencent.com/document/api/1427/78480
+//! <https://cloud.tencent.com/document/api/1427/78480>
 
 #![allow(unused)]
 
@@ -67,7 +67,7 @@ pub enum RecordType {
     #[default]
     #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     A,
-    /// 将域名指向另一个域名地址，与其保持相同解析，如 https://www.dnspod.cn
+    /// 将域名指向另一个域名地址，与其保持相同解析，如 <https://www.dnspod.cn>
     #[cfg_attr(feature = "clap", clap(rename_all = "UPPER"))]
     CNAME,
     /// 用于邮件服务器，相关参数一般由邮件注册商提供
@@ -140,6 +140,33 @@ pub enum DomainType {
     FREE,
 }
 
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, Default, LiteralEnum, Serialize, Deserialize)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+pub enum DomainGrade {
+    /// 免费套餐
+    D_FREE,
+    /// 个人豪华
+    D_PLUS,
+    /// 企业1
+    D_EXTRA,
+    /// 企业2
+    D_EXPERT,
+    /// 企业3
+    D_ULTRA,
+    /// 免费
+    #[default]
+    DP_FREE,
+    /// 个人专业版
+    DP_PLUS,
+    /// 企业创业版
+    DP_EXTRA,
+    /// 企业标准版
+    DP_EXPERT,
+    /// 企业旗舰版
+    DP_ULTRA,
+}
+
 /// 注意: 服务器有时会返回 "0000-00-00", 会导致 date 解析出错
 /// 所以直接用 String 会有更好的兼容性
 #[derive(Debug, Clone)]
@@ -147,7 +174,7 @@ pub struct DnsPodDate {
     pub date: Option<NaiveDate>,
 }
 
-/// https://serde.rs/custom-date-format.html
+/// <https://serde.rs/custom-date-format.html>
 impl Serialize for DnsPodDate {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

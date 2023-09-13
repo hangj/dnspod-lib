@@ -2,7 +2,7 @@
 
 /// 混编 `#[..]` 与 `@[..]` 整流成 `#[..]` 在前, `@[..]` 在后
 /// 
-/// 详细用法请查看 [README.md](https://github.com/hangj/dnspod-lib/tree/main/src/macros)
+#[doc = include_str!("README.md")]
 #[macro_export]
 macro_rules! custom_meta_struct {
     ($($tt: tt)*) => {
@@ -250,6 +250,27 @@ macro_rules! custom_meta_struct_impl {
                 $($meta)*
                 $($my_meta)*
                 $vis struct $name $body
+            ],
+            $($tail)*
+        }
+    };
+
+    // 组装 enum
+    (
+        ($($cb: tt)*),
+        [$($meta: tt)*],
+        [$($my_meta: tt)*],
+        [$($strct: tt)*],
+        $vis: vis enum $name: ident $body: tt
+        $($tail: tt)*
+    ) => {
+        $crate::new_struct! {
+            ($($cb)*),
+            [
+                $($strct)*
+                $($meta)*
+                $($my_meta)*
+                $vis enum $name $body
             ],
             $($tail)*
         }

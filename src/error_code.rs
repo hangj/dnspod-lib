@@ -1,5 +1,5 @@
 //! 错误码
-//! https://cloud.tencent.com/document/api/1427/56192
+//! <https://cloud.tencent.com/document/api/1427/56192>
 //!
 
 use serde::Deserialize;
